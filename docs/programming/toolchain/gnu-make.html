@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<title>GNU Make</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+
+<section class="container">
+  <h1>GNU Make</h1>
+<h3>Targets</h3>
+<p>Targets look like this:</p>
+<pre><code class="language-makefile">target(s): prereq(s)
+        recipe line(s)
+</code></pre>
+<p>Recipe lines are indented with hard tabs.</p>
+<p>If the prerequisites for a target are newer than the target, then that target will be rebuilt using the recipe.</p>
+<p>Double-colon rules can be used if the recipe required to rebuild a target depends on which prerequisite has changed:</p>
+<pre><code class="language-makefile">target:: foo
+        do the thing necessary to rebuild target from foo
+
+target:: bar
+        do the thing necessary to rebuild target from bar
+</code></pre>
+<h3>Goals</h3>
+<p>The first target defined in the Makefile is the default goal, but you can pass one or more goals on the command-line instead, in which case they will be built in the order specified (and available in <code>$(MAKECMDGOALS)</code>).</p>
+<h3>Variables</h3>
+<p>Use <code>lower_case</code> names for private variables, and <code>UPPER_CASE</code> names for <a href="https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html#Implicit-Variables">variables used by implicit rules</a> (like <code>CFLAGS</code>) or for variables meant to be overridden by command-line parameters (like <code>DEBUG</code>).</p>
+<h4>Flavors</h4>
+<p>Make variables come in <a href="https://www.gnu.org/software/make/manual/html_node/Flavors.html#Flavors">two flavors</a>: recursively expanded (<code>foo = bar</code>) and simply expanded (<code>foo := bar</code>).</p>
+<p>Recursively expanded variables are expanded every time they're substituted. Consequently, something like this won't work (because it's infinite recursion):</p>
+<pre><code class="language-makefile">foo = $(foo) bar
+</code></pre>
+<p>but this will work (because of the lazy evaluation):</p>
+<pre><code class="language-makefile">foo = $(bar)
+bar = blee
+</code></pre>
+<p>Simply expanded variables are expanded just once, during the first pass.</p>
+<h4>Conditional definition</h4>
+<p>To define a variable iff it doesn't already exist, use the conditional definition operator:</p>
+<pre><code class="language-makefile">foo ?= bar
+</code></pre>
+<h4>Overriding</h4>
+<p>Passing a variable on the command-line overrides any definitions of that variable in the Makefile:</p>
+<pre><code class="language-makefile">FOO = bar
+all:
+        $(info $(FOO))
+</code></pre>
+<pre><code>$ make
+bar
+
+$ make FOO=blee
+blee
+</code></pre>
+<h4>Environment</h4>
+<p>Environment variables are automatically defined as make variables, unless a variable of the same name is explicitly defined in the Makefile or passed on the make command-line. All make variables are passed as environment variables to recipe sub-shells, except for recursive make invocations, which only receive variables in the parent environment or passed on the command-line (although you can use <code>export</code> to communicate variables to sub-makes).</p>
+<h3>Includes</h3>
+<p>Makefiles can include other Makefiles:</p>
+<pre><code class="language-makefile">include other.mk
+</code></pre>
+<p><code>other.mk</code> doesn't have to exist, so long as there's a rule to build it. If an included Makefile is rebuilt, <a href="http://make.mad-scientist.net/constructed-include-files">Make will start over from scratch</a> in order to pick up the changes.</p>
+
+</section>
+
+<section class="container">
+  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
+</section>

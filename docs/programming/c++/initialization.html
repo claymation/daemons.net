@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<title>Initialization</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+
+<section class="container">
+  <h1>Initialization</h1>
+<h3>Automatic objects</h3>
+<p>C++ initializes automatic (local) variables of class type at the point of declaration, and deletes such variables when they go out of scope:</p>
+<div class="row">
+<div class="column">
+<pre><code class="language-c++">#include &lt;iostream&gt;
+
+struct T {
+    T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+    ~T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+};
+
+int main(int argc, char *argv[])
+{
+    for (int i = 0; i &lt; 3; ++i)
+    {
+        T t;
+    }
+}
+</code></pre>
+</div>
+<div class="column">
+<pre><code class="language-txt">T
+~T
+T
+~T
+T
+~T
+</code></pre>
+</div>
+</div>
+<p>Automatic variables of built-in type are not initialized.</p>
+<h3>Heap objects</h3>
+<p>Similarly, objects of class type on the heap are initialized by <code>operator new</code> and deleted by <code>operator delete</code>:</p>
+<div class="row">
+<div class="column">
+<pre><code class="language-c++">#include &lt;iostream&gt;
+
+struct T {
+    T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+    ~T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+};
+
+int main(int argc, char *argv[])
+{
+    for (int i = 0; i &lt; 3; ++i) {
+        T *t = new T;
+        delete t;
+    }
+}
+</code></pre>
+</div>
+<div class="column">
+<pre><code class="language-txt">T
+~T
+T
+~T
+T
+~T
+</code></pre>
+</div>
+</div>
+<p>As before, obejcts of built-in type on the heap are not initialized.</p>
+<h3>Static objects</h3>
+<p>Objects of class type with static storage duration (that is, global variables, static local variables, and static class members) are initialized once before first use and deleted at program termination:</p>
+<div class="row">
+<div class="column">
+<pre><code class="language-c++">#include &lt;iostream&gt;
+
+struct T {
+    T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+    ~T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+};
+
+void func(void)
+{
+    static T t;
+}
+
+int main(int argc, char *argv[])
+{
+    for (int i = 0; i &lt; 3; ++i)
+    {
+        func();
+    }
+}
+</code></pre>
+</div>
+<div class="column">
+<pre><code class="language-txt">T
+~T
+</code></pre>
+</div>
+</div>
+<p>Objects of built-in type with static storage duration are initialized as in C: they're zero-initialized by the program loader or the language run-time.</p>
+
+</section>
+
+<section class="container">
+  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
+</section>

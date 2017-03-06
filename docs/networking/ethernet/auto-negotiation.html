@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<title>Auto-Negotiation</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+
+<section class="container">
+  <h1>Auto-Negotiation</h1>
+<p>It's easy to take Auto-Negotiation for granted. It's purpose, after all, is to ensure that Ethernet usually Just Works™. But it's a pretty cool, if overlooked, piece of technology in its own right, and knowing how it works can be invaluable for when it doesn't.</p>
+<p>According to the <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section1.pdf">IEEE Standard for Ethernet</a>:</p>
+<blockquote>
+<p>The objective of the Auto-Negotiation function is to provide the means to exchange information between two devices that share a link segment and to automatically configure both devices to take maximum advantage of their abilities.</p>
+</blockquote>
+<p>&quot;Abilities&quot; in this context refers to speed, duplex, and more esoteric capabilities such as flow control, master/slave timing, Energy Efficient Ethernet, and vendor-defined features.</p>
+<p>Auto-Negotiation is a physical layer function, and is implemented in the PHY. The MAC is none the wiser to the gyrations afoot at the lower layers. The standard  defines distinct Auto-Negotiation schemes to support different Ethernet media systems:</p>
+<ul>
+<li><a href="http://standards.ieee.org/getieee802/download/802.3-2012_section2.pdf">Clause 28</a> defines the Auto-Negotiation function for twisted pair media systems (like 10BASE-T, 100BASE-TX, 1000BASE-T, and 10GBASE-T)</li>
+<li><a href="http://standards.ieee.org/getieee802/download/802.3-2012_section3.pdf">Clause 37</a> defines the Auto-Negotiation function for the 1000BASE-X family of 1000 Mb/s media systems</li>
+<li><a href="http://standards.ieee.org/getieee802/download/802.3-2012_section5.pdf">Clause 73</a> defines the Auto-Negotiation function for backplane Ethernet (1000BASE-KX, 10GBASE-KR, etc) and high-speed short-range shielded copper media systems (40GBASE-CR4, 100GBASE-CR10, etc)</li>
+</ul>
+<p>All three schemes provide a means for link partners to advertise their capabilities and select a highest common denominator technology using a simple priority resolution scheme. They vary in the signaling used to advertise capabilities, and in the specific capabilities applicable to that media system.</p>
+<h3>Clause 28 Auto-Negotiation</h3>
+<p>The decision to reuse the 8P8C (RJ-45) connector from 10BASE-T during the development of Fast Ethernet allowed for the design of multispeed ports that could operate at 10BASE-T or 100BASE-TX. To mitigate the increased potential for configuration errors under such a scheme, the designers provided a means for automatically configuring the port, namely, <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section2.pdf">Clause 28</a> Auto-Negotiation.</p>
+<h4>Signaling</h4>
+<p>Clause 28 builds on 10BASE-T link integrity test pulses. Following in <a href="https://www.youtube.com/watch?v=i8CmibhvZ0c">Ben Eater's footsteps</a>, I hooked an oscilloscope up to an Ethernet cable between two hosts to observe the signaling first-hand.</p>
+<p>Here's what a 10BASE-T link integrity test pulse (or normal link pulse, NLP) looks like:</p>
+<p><img src="/static/images/networking/ethernet/auto-negotiation/normal-link-pulse.png" alt="Oscilloscope waveform of a 10BASE-T link integrity test pulse" /></p>
+<p>Zooming out and disconnecting one end of the Ethernet cable to restart the Auto-Negotiation process, we can see a fast link pulse (FLP) burst occurring every ~16 ms:</p>
+<p><img src="/static/images/networking/ethernet/auto-negotiation/fast-link-pulse-bursts.png" alt="Oscilloscope waveform showing several fast link pulse bursts" /></p>
+<p>Zooming in on one of the FLP bursts shows that it's made up of several NLPs:</p>
+<p><img src="/static/images/networking/ethernet/auto-negotiation/decoded-fast-link-pulse-burst.png" alt="Oscilloscope waveform of a fast link pulse burst" /></p>
+<p>Each FLP burst consists of up to 33 NLPs. 17 regularly spaced clock pulses (appearing every ~125 us) are used to synchronize the receiver's clock. A data pulse can be inserted between clock pulses to indicate a logical 1. An absent data pulse represents a logical 0. Because there are 17 clock pulses, there's room for 16 data pulses in each FLP burst, enabling the transmission of a 16-bit page of Auto-Negotiation data.</p>
+<h4>Base Page</h4>
+<h4>Next Pages</h4>
+<h4>Parallel Detection</h4>
+<p>Auto-Negotiation is optional for 10BASE-T and 100BASE-TX, which pre-date Clause 28. To ensure backwards compatibility with legacy devices, Parallel Detection allows an AN-capable device to fallback to either 10BASE-T or 100BASE-TX if it detects link integrity test pulses or idle code words, respectively.</p>
+<h4>Gigabit and Beyond</h4>
+<p>Clause 28 Auto-Negotiation is required for 1000BASE-T and subsequent twisted pair standards so that link partners can negotiate their master/slave timing relationship.</p>
+<h3>Reading</h3>
+<ul>
+<li>IEEE Standard for Ethernet: <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section2.pdf">Clause 28</a></li>
+<li>IEEE Standard for Ethernet: <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section3.pdf">Clause 37</a></li>
+<li>IEEE Standard for Ethernet: <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section5.pdf">Clause 73</a></li>
+<li><a href="https://www.iol.unh.edu/sites/default/files/knowledgebase/ethernet/Copper_ANEG_JEFF_LAPAK.pdf">An Introduction to the Auto-Negotiation Process</a></li>
+</ul>
+
+</section>
+
+<section class="container">
+  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
+</section>
