@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<title>Flash</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<section class="container">
+  <h1>Flash</h1>
+<p>Flash is a generic term for non-volatile solid-state memory. It differs from
+traditional block storage in fundamental ways:</p>
+<ul>
+<li>Flash requires distinct erase and write operations</li>
+<li>Flash eraseblocks are many times larger than block device sectors</li>
+<li>Flash eraseblocks wear out after 10^3 - 10^5 program/erase cycles</li>
+<li>Higher layers have to contend with bad eraseblocks (block devices
+typically insulate higher layers from bad blocks)</li>
+</ul>
+<p>Counterintuitively, the flash erase operation sets bits to the logic high (1)
+state, while the program operation sets bits to the logic low (0) state.</p>
+<h2>NOR flash</h2>
+<p>NOR flash is available in megabit to gigabit densities and serial (SPI) or
+parallel interfaces.</p>
+<p>NOR flash is organized into sectors (typ. 64 kB) of pages (typ. 256 bytes).
+The sector is the smallest unit that can be erased. Erasing is typically slow,
+on the order of hundreds of milliseconds per sector, requiring several seconds
+to erase the entire device.</p>
+<p>NOR flash is byte-addressable, enabling random-access I/O. Individual bytes
+can be read and programmed. Reads are fast: sustained transfer rates of tens
+of megabytes per second are possible. Writes are slow: kilobytes per second.</p>
+<p>Because of its good random-access read performance, NOR flash can be used for
+execute-in-place (XIP) applications, such as bootloaders.</p>
+<h3>Command set</h3>
+<p>NOR flash chips commonly use one-byte commands to initiate read, program, and
+erase cycles and to read status and identification registers. Common commands
+include:</p>
+<ul>
+<li>write enable / disable</li>
+<li>read identification</li>
+<li>read / write status register</li>
+<li>read data bytes</li>
+<li>page program</li>
+<li>sector erase</li>
+<li>bulk erase</li>
+</ul>
+<h3>CFI</h3>
+<p>The <a href="http://www.jedec.org/sites/default/files/docs/jesd68-01.pdf">Common Flash Interface (CFI)</a> specification defines a protocol for
+software to query a flash device's identity and geometry.</p>
+<h2>NAND flash</h2>
+<p>NAND flash offers higher densities (up to several terabits) and faster program
+and erase cycles than NOR flash, at the expense of no random-access
+capability.</p>
+<p>NAND flash density is determined by the cell technology:</p>
+<ul>
+<li>SLC (single-level cell) NAND stores one bit per cell; fastest, most durable,
+most expensive</li>
+<li>MLC (multilevel cell) NAND stores two bits per cell; slower, less durable,
+less expensive</li>
+<li>TLC (triple-level cell) NAND stores three bits per cell; slowest, least
+durable, least expensive</li>
+</ul>
+<p>Recent innovations in 3D NAND technology allow MLC and TLC memory to achieve
+performance and durability comparable to SLC memory.</p>
+<p>NAND flash is organized into blocks (typ. 128 - 256 kB) of pages (typ. 2 - 4
+kB). The block (aka eraseblock) is the smallest unit that can be erased. The
+page is nominally the smallest unit that can be read or programmed, though
+some NAND flashes support sub-page reads and writes.</p>
+<p>Most NAND flash is parallel, though serial devices are available.</p>
+<h3>ONFI</h3>
+<p>The <a href="http://www.onfi.org/%7E/media/onfi/specs/onfi_4_0-gold.pdf?la=en">Open NAND Flash Interface (ONFI)</a> specification describes a parameter
+page that software can use to determine chip identity and geometry.</p>
+<h3>Flash translation layer</h3>
+<p>A flash translation layer (FTL) can be used to emulate a traditional block
+device on top of raw NAND flash.</p>
+<p>Common FTL implementations include:</p>
+<ul>
+<li>CompactFlash (CF)</li>
+<li>MultiMedia Card (MMC/eMMC)</li>
+<li>Secure Digital (SD/SDHC/SDXC)</li>
+<li>USB flash drives</li>
+</ul>
+
+</section>
+
+<section class="container">
+  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
+</section>
