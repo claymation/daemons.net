@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<title>UBI</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<section class="container">
+  <h1>UBI</h1>
+<p>UBI provides a logical volume management (LVM) layer on top of raw flash
+devices. UBI volumes are defined in terms of logical erase blocks (LEBs),
+which UBI maps to the physical erase blocks (PEBs) on the NAND device.</p>
+<p>UBI transpartently manages block wear leveling, bad blocks, and bit flips,
+freeing higher layer software from these concerns.</p>
+<h2>Physical Erase Block layout</h2>
+<pre><code>┌─────┬─────┬──────────────────────────────────────────────────┐
+│ EC  │ VID │ User data (LEB)                                  │
+└─────┴─────┴──────────────────────────────────────────────────┘
+↑     ↑     ↑
+│     │     │
+│     │     └── offset determined by flash min. I/O unit
+│     └──────── offset determined by flash min. I/O unit or NAND sub-page
+└────────────── offset 0
+
+EC:  Erase counter header (64 bytes)
+VID: Volume ID header (64 bytes)
+</code></pre>
+
+</section>
+
+<section class="container">
+  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
+</section>
