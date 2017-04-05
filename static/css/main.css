@@ -1,0 +1,10 @@
+.wrapper .container {
+  max-width: 80rem;
+}
+
+footer.container {
+  border-top: solid 1px #eee;
+  color: #aaa;
+  padding: 3rem 0;
+  text-align: center;
+}

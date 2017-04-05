@@ -8,12 +8,15 @@
 <link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
 <link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
+<link rel="stylesheet" href="/static/css/main.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
-<section class="container">
-  <h1>MTD</h1>
+
+<main class="wrapper">
+  <section class="container">
+    <h1>MTD</h1>
 <p>The Memory Technology Devices (MTD) layer provides a common interface to many
 types of <a href="/hardware/storage/flash.html">raw flash</a> devices. In addition to the
 typical block read and write operations, it also provides an erase operation
@@ -339,8 +342,9 @@ int mtd_read_oob(struct mtd_info *mtd, loff_t from, struct mtd_oob_ops *ops);
 int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
 </code></pre>
 
-</section>
+  </section>
 
-<section class="container">
-  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
-</section>
+  <footer class="container">
+    Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Built with <a href="https://claymation.github.io/void/">void</a>.
+  </footer>
+</main>

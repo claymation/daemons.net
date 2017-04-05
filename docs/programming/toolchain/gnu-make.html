@@ -8,12 +8,15 @@
 <link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
 <link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
+<link rel="stylesheet" href="/static/css/main.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
-<section class="container">
-  <h1>GNU Make</h1>
+
+<main class="wrapper">
+  <section class="container">
+    <h1>GNU Make</h1>
 <h3>Targets</h3>
 <p>Targets look like this:</p>
 <pre><code class="language-makefile">target(s): prereq(s)
@@ -66,8 +69,9 @@ blee
 </code></pre>
 <p><code>other.mk</code> doesn't have to exist, so long as there's a rule to build it. If an included Makefile is rebuilt, <a href="http://make.mad-scientist.net/constructed-include-files">Make will start over from scratch</a> in order to pick up the changes.</p>
 
-</section>
+  </section>
 
-<section class="container">
-  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
-</section>
+  <footer class="container">
+    Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Built with <a href="https://claymation.github.io/void/">void</a>.
+  </footer>
+</main>
