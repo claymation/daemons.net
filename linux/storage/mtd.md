@@ -1,44 +1,48 @@
 # MTD
 
-The Memory Technology Devices (MTD) layer provides a common interface to many
-types of [raw flash](/hardware/storage/flash.html) devices. In addition to the
-typical block read and write operations, it also provides an erase operation
-and facilities for managing bad blocks and out-of-band data (for NAND flash).
+The Memory Technology Devices (MTD) subsystem provides a common interface to
+many types of [raw flash](/hardware/storage/flash.html) storage devices. 
 
 
-## User-space interfaces
+## Devices
 
-  * `/dev/mtdX`: read-write character device for I/O and ioctls
-  * `/dev/mtdXro`: read-only character device for I/O and ioctls
-  * `/sys/class/mtd`
-  * `/proc/mtd` (deprecated)
+MTD provides a character device interface for I/O and `ioctl`s:
 
-You can read any number of bytes from a `/dev/mtdX` character device node; MTD
-transparently reads the required number of blocks from the device and copies
-the requested number of bytes to the userspace buffer. Writes, however, must
-be done in multiples of the page size.
+  * `/dev/mtdX`: read-write
+  * `/dev/mtdXro`: read-only
+
+Each pair of `mtdX` devices represents either an entire flash device or a
+single partition on a flash device.
+
+You can read any number of bytes from a `/dev/mtdX` device; MTD transparently
+reads the required number of pages from the device and copies the requested
+number of bytes to the userspace buffer. Writes, however, must be done in
+multiples of the write size (as reported by `/sys/class/mtd/mtdX/writesize`).
 
 Here's an example from a (simulated, see below) NAND flash with a 512-byte
-page size:
+write size:
 
 ``` txt
-clay@ubuntu:~$ sudo dd if=/dev/mtd0 of=/dev/null bs=1 count=1
+$ dd if=/dev/mtd0 of=/dev/null bs=1 count=1
 1+0 records in
 1+0 records out
 1 byte copied, 0.000174195 s, 5.7 kB/s
 
-clay@ubuntu:~$ sudo dd if=/dev/zero of=/dev/mtd0 bs=1 count=1
+$ dd if=/dev/zero of=/dev/mtd0 bs=1 count=1
 dd: error writing '/dev/mtd0': Invalid argument
 1+0 records in
 0+0 records out
 0 bytes copied, 0.000312924 s, 0.0 kB/s
 ```
 
-As you would expect, reading an erased flash gives bytes with all bits set
-(0xff):
+Reading an erased flash returns bytes with all bits set (0xff):
 
 ``` txt
-clay@ubuntu:~$ sudo dd if=/dev/mtd0 bs=512 count=1 2>/dev/null | hd
+$ dd if=/dev/mtd0 bs=512 count=1 | hd
+1+0 records in
+1+0 records out
+512 bytes copied, 0.0078236 s, 65.4 kB/s
+
 00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 *
 00000200
@@ -49,81 +53,82 @@ one:
 
 ``` txt
 # write (program) all the bits to zero
-clay@ubuntu:~$ sudo dd if=/dev/zero of=/dev/mtd0 bs=512 count=1
+$ dd if=/dev/zero of=/dev/mtd0 bs=512 count=1
 1+0 records in
 1+0 records out
 512 bytes copied, 0.0021276 s, 241 kB/s
 
 # all the bits are now zero
-clay@ubuntu:~$ sudo dd if=/dev/mtd0 count=1 2>/dev/null | hd
+$ dd if=/dev/mtd0 bs=512 count=1 | hd
+1+0 records in
+1+0 records out
+512 bytes copied, 0.0078236 s, 65.4 kB/s
+
 00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
 *
 00000200
 
 # attempt to write (program) arbitrary data
-clay@ubuntu:~$ sudo dd if=/dev/urandom of=/dev/mtd0 bs=512 count=1
+$ dd if=/dev/urandom of=/dev/mtd0 bs=512 count=1
 1+0 records in
 1+0 records out
 512 bytes copied, 0.000195163 s, 2.6 MB/s
 
-# all the bits are still zero
-clay@ubuntu:~$ sudo dd if=/dev/mtd0 count=1 2>/dev/null | hd
+# all the bits are *still* zero
+$ dd if=/dev/mtd0 count=1 2>/dev/null | hd
 00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
 *
 00000200
 ```
 
-The `flash_erase` tool from the [mtd-utils] distribution will return all the
-bits in a block (or an entire mtd partition, more on that below) to all-ones:
+
+## Utilities
+
+The `flash_erase` utility from the [mtd-utils] distribution erases all bytes
+(sets all the bits to one) in a block (or an entire mtd partition):
 
 ``` txt
-clay@ubuntu:~$ sudo flash_erase /dev/mtd0 0 0
+$ flash_erase /dev/mtd0 0 0
 Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
 
-clay@ubuntu:~$ sudo dd if=/dev/mtd0 bs=512 count=1 2>/dev/null | hd
+$ dd if=/dev/mtd0 bs=512 count=1 2>/dev/null | hd
 00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 *
 00000200
 ```
 
-Behind the scenes, `flash_erase` invokes `ioctl(MEMERASE)` on the mtd device.
-Many such ioctls are defined, forming the userspace control interface to the
-MTD subsystem, including:
+The `mtdpart` utility adds and deletes MTD partitions. (TODO: example)
 
-``` c
-/* Get basic MTD characteristics info (better to use sysfs) */
-#define MEMGETINFO              _IOR('M', 1, struct mtd_info_user)
 
-/* Erase segment of MTD */
-#define MEMERASE                _IOW('M', 2, struct erase_info_user)
+### NAND simulator
 
-/* Write out-of-band data from MTD */
-#define MEMWRITEOOB             _IOWR('M', 3, struct mtd_oob_buf)
+MTD includes a NAND simulator module (`nandsim`) that attaches a virtual MTD
+device:
 
-/* Read out-of-band data from MTD */
-#define MEMREADOOB              _IOWR('M', 4, struct mtd_oob_buf)
+``` txt
+$ modprobe nandsim
 
-/* Lock a chip (for MTD that supports it) */
-#define MEMLOCK                 _IOW('M', 5, struct erase_info_user)
+$ mtdinfo -a
+Count of MTD devices:           1
+Present MTD devices:            mtd0
+Sysfs interface supported:      yes
 
-/* Unlock a chip (for MTD that supports it) */
-#define MEMUNLOCK               _IOW('M', 6, struct erase_info_user)
-
-/* Check if chip is locked (for MTD that supports it) */
-#define MEMISLOCKED             _IOR('M', 23, struct erase_info_user)
-
-/* Check if an eraseblock is bad */
-#define MEMGETBADBLOCK          _IOW('M', 11, __kernel_loff_t)
-
-/* Mark an eraseblock as bad */
-#define MEMSETBADBLOCK          _IOW('M', 12, __kernel_loff_t)
-
-/*
- * Most generic write interface; can write in-band and/or out-of-band in various
- * modes (see "struct mtd_write_req")
- */
-#define MEMWRITE                _IOWR('M', 24, struct mtd_write_req)
+mtd0
+Name:                           NAND simulator partition 0
+Type:                           nand
+Eraseblock size:                16384 bytes, 16.0 KiB
+Amount of eraseblocks:          8192 (134217728 bytes, 128.0 MiB)
+Minimum input/output unit size: 512 bytes
+Sub-page size:                  256 bytes
+OOB size:                       16 bytes
+Character device major/minor:   90:0
+Bad blocks are allowed:         true
+Device is writable:             true
 ```
+
+## Details
+
+### libmtd
 
 The [mtd-utils] distribution includes a static library (libmtd.a) that wraps the
 MTD ioctls in a tidy API:
@@ -315,32 +320,50 @@ int mtd_is_bad(const struct mtd_dev_info *mtd, int fd, int eb);
 int mtd_mark_bad(const struct mtd_dev_info *mtd, int fd, int eb);
 ```
 
-## NAND simulator
 
-MTD includes a NAND simulator module (`nandsim`) that attaches a virtual MTD
-device:
+### `ioctl` ABI
 
-``` txt
-clay@ubuntu:~$ sudo modprobe nandsim
-clay@ubuntu:~$ mtdinfo -a
-Count of MTD devices:           1
-Present MTD devices:            mtd0
-Sysfs interface supported:      yes
+Behind the scenes, `flash_erase` invokes `ioctl(MEMERASE)` on the mtd device.
+Many such ioctls are defined, forming the userspace control interface to the
+MTD subsystem, including:
 
-mtd0
-Name:                           NAND simulator partition 0
-Type:                           nand
-Eraseblock size:                16384 bytes, 16.0 KiB
-Amount of eraseblocks:          8192 (134217728 bytes, 128.0 MiB)
-Minimum input/output unit size: 512 bytes
-Sub-page size:                  256 bytes
-OOB size:                       16 bytes
-Character device major/minor:   90:0
-Bad blocks are allowed:         true
-Device is writable:             true
+``` c
+/* Get basic MTD characteristics info (better to use sysfs) */
+#define MEMGETINFO              _IOR('M', 1, struct mtd_info_user)
+
+/* Erase segment of MTD */
+#define MEMERASE                _IOW('M', 2, struct erase_info_user)
+
+/* Write out-of-band data from MTD */
+#define MEMWRITEOOB             _IOWR('M', 3, struct mtd_oob_buf)
+
+/* Read out-of-band data from MTD */
+#define MEMREADOOB              _IOWR('M', 4, struct mtd_oob_buf)
+
+/* Lock a chip (for MTD that supports it) */
+#define MEMLOCK                 _IOW('M', 5, struct erase_info_user)
+
+/* Unlock a chip (for MTD that supports it) */
+#define MEMUNLOCK               _IOW('M', 6, struct erase_info_user)
+
+/* Check if chip is locked (for MTD that supports it) */
+#define MEMISLOCKED             _IOR('M', 23, struct erase_info_user)
+
+/* Check if an eraseblock is bad */
+#define MEMGETBADBLOCK          _IOW('M', 11, __kernel_loff_t)
+
+/* Mark an eraseblock as bad */
+#define MEMSETBADBLOCK          _IOW('M', 12, __kernel_loff_t)
+
+/*
+ * Most generic write interface; can write in-band and/or out-of-band in various
+ * modes (see "struct mtd_write_req")
+ */
+#define MEMWRITE                _IOWR('M', 24, struct mtd_write_req)
 ```
 
-## Kernel API
+
+### Kernel API
 
 Higher layer kernel subsystems (flash filesytems, [UBI][]) interact with raw
 flash via the MTD API defined in [include/linux/mtd/mtd.h][], including:
@@ -353,7 +376,11 @@ int mtd_read_oob(struct mtd_info *mtd, loff_t from, struct mtd_oob_ops *ops);
 int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
 ```
 
+Device drivers register MTD devices with the MTD core via
+[`mtd_device_register()`](http://elixir.free-electrons.com/ident?v=4.10&i=mtd_device_register).
+
+
+[mtd-utils]: http://git.infradead.org/mtd-utils.git
 [UBI]: ubi.html
 [include/linux/mtd/mtd.h]:
 http://elixir.free-electrons.com/source/include/linux/mtd/mtd.h
-[mtd-utils]: http://git.infradead.org/mtd-utils.git
