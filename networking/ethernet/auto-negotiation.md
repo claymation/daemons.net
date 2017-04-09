@@ -1,7 +1,5 @@
 # Auto-Negotiation
 
-It's easy to take Auto-Negotiation for granted. It's purpose, after all, is to ensure that Ethernet usually Just Works™. But it's a pretty cool, if overlooked, piece of technology in its own right, and knowing how it works can be invaluable for when it doesn't.
-
 According to the [IEEE Standard for Ethernet][]:
 
 > The objective of the Auto-Negotiation function is to provide the means to exchange information between two devices that share a link segment and to automatically configure both devices to take maximum advantage of their abilities.
