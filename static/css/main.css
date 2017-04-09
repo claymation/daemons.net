@@ -16,14 +16,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 pre {
-  overflow-x: auto;
-  padding: 0.5em;
-  color: #383a42;
   background: #fafafa;
+  color: #383a42;
+  overflow-x: auto;
+  margin: 1em -0.5em;
+  padding: 0.5em;
 }
 
 code {
+  background: #fafafa;
+  color: #383a42;
   font: 1.6rem 'Source Code Pro', monospace;
+}
+
+code.hljs {
+  padding: 0 !important;
+}
+
+blockquote {
+  background: #fafafa;
+  border-left: solid .5rem #4078f2;
+  margin: 0;
+  padding: 0 2rem;
 }
 
 .document {
