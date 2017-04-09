@@ -4,22 +4,23 @@
 
 <title>MTD</title>
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
-<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
-<link rel="stylesheet" href="/static/css/main.css">
+<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-<main class="wrapper">
-  <section class="container">
-    <h1>MTD</h1>
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="MTD">MTD</h1>
 <p>The Memory Technology Devices (MTD) subsystem provides a common interface to
 many types of <a href="/hardware/storage/flash.html">raw flash</a> storage devices.</p>
-<h2>Devices</h2>
+<h2 id="Devices">Devices</h2>
 <p>MTD provides a character device interface for I/O and <code>ioctl</code>s:</p>
 <ul>
 <li><code>/dev/mtdX</code>: read-write</li>
@@ -84,7 +85,7 @@ $ dd if=/dev/mtd0 count=1 2&gt;/dev/null | hd
 *
 00000200
 </code></pre>
-<h2>Utilities</h2>
+<h2 id="Utilities">Utilities</h2>
 <p>The <code>flash_erase</code> utility from the <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a> distribution erases all bytes
 (sets all the bits to one) in a block (or an entire mtd partition):</p>
 <pre><code class="language-txt">$ flash_erase /dev/mtd0 0 0
@@ -96,7 +97,7 @@ $ dd if=/dev/mtd0 bs=512 count=1 2&gt;/dev/null | hd
 00000200
 </code></pre>
 <p>The <code>mtdpart</code> utility adds and deletes MTD partitions. (TODO: example)</p>
-<h3>NAND simulator</h3>
+<h3 id="NAND-simulator">NAND simulator</h3>
 <p>MTD includes a NAND simulator module (<code>nandsim</code>) that attaches a virtual MTD
 device:</p>
 <pre><code class="language-txt">$ modprobe nandsim
@@ -118,8 +119,8 @@ Character device major/minor:   90:0
 Bad blocks are allowed:         true
 Device is writable:             true
 </code></pre>
-<h2>Details</h2>
-<h3>libmtd</h3>
+<h2 id="Details">Details</h2>
+<h3 id="libmtd">libmtd</h3>
 <p>The <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a> distribution includes a static library (libmtd.a) that wraps the
 MTD ioctls in a tidy API:</p>
 <pre><code class="language-c">/**
@@ -307,7 +308,7 @@ int mtd_is_bad(const struct mtd_dev_info *mtd, int fd, int eb);
  */
 int mtd_mark_bad(const struct mtd_dev_info *mtd, int fd, int eb);
 </code></pre>
-<h3><code>ioctl</code> ABI</h3>
+<h3 id="ioctl"><code>ioctl</code> ABI</h3>
 <p>Behind the scenes, <code>flash_erase</code> invokes <code>ioctl(MEMERASE)</code> on the mtd device.
 Many such ioctls are defined, forming the userspace control interface to the
 MTD subsystem, including:</p>
@@ -344,7 +345,7 @@ MTD subsystem, including:</p>
  */
 #define MEMWRITE                _IOWR('M', 24, struct mtd_write_req)
 </code></pre>
-<h3>Kernel API</h3>
+<h3 id="Kernel-API">Kernel API</h3>
 <p>Higher layer kernel subsystems (flash filesytems, <a href="ubi.html">UBI</a>) interact with raw
 flash via the MTD API defined in <a href="http://elixir.free-electrons.com/source/include/linux/mtd/mtd.h">include/linux/mtd/mtd.h</a>, including:</p>
 <pre><code class="language-c">int mtd_read(struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
@@ -356,9 +357,83 @@ int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
 <p>Device drivers register MTD devices with the MTD core via
 <a href="http://elixir.free-electrons.com/ident?v=4.10&amp;i=mtd_device_register"><code>mtd_device_register()</code></a>.</p>
 
-  </section>
+      </main>
+      <footer>
+        Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
 
-  <footer class="container">
-    Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Built with <a href="https://claymation.github.io/void/">void</a>.
-  </footer>
-</main>
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <section class="toc">
+        <h3>Table of Contents</h3>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#MTD">MTD</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Devices">Devices</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Utilities">Utilities</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#NAND-simulator">NAND simulator</a>
+          
+          
+        
+          
+            </li></ul><li>
+          
+          <a href="#Details">Details</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#libmtd">libmtd</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#ioctl">ioctl</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Kernel-API">Kernel API</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>

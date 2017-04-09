@@ -4,19 +4,20 @@
 
 <title>Auto-Negotiation</title>
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
-<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
-<link rel="stylesheet" href="/static/css/main.css">
+<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-<main class="wrapper">
-  <section class="container">
-    <h1>Auto-Negotiation</h1>
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="Auto-Negotiation">Auto-Negotiation</h1>
 <p>It's easy to take Auto-Negotiation for granted. It's purpose, after all, is to ensure that Ethernet usually Just Works™. But it's a pretty cool, if overlooked, piece of technology in its own right, and knowing how it works can be invaluable for when it doesn't.</p>
 <p>According to the <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section1.pdf">IEEE Standard for Ethernet</a>:</p>
 <blockquote>
@@ -30,9 +31,9 @@
 <li><a href="http://standards.ieee.org/getieee802/download/802.3-2012_section5.pdf">Clause 73</a> defines the Auto-Negotiation function for backplane Ethernet (1000BASE-KX, 10GBASE-KR, etc) and high-speed short-range shielded copper media systems (40GBASE-CR4, 100GBASE-CR10, etc)</li>
 </ul>
 <p>All three schemes provide a means for link partners to advertise their capabilities and select a highest common denominator technology using a simple priority resolution scheme. They vary in the signaling used to advertise capabilities, and in the specific capabilities applicable to that media system.</p>
-<h3>Clause 28 Auto-Negotiation</h3>
+<h3 id="Clause-28-Auto-Negotiation">Clause 28 Auto-Negotiation</h3>
 <p>The decision to reuse the 8P8C (RJ-45) connector from 10BASE-T during the development of Fast Ethernet allowed for the design of multispeed ports that could operate at 10BASE-T or 100BASE-TX. To mitigate the increased potential for configuration errors under such a scheme, the designers provided a means for automatically configuring the port, namely, <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section2.pdf">Clause 28</a> Auto-Negotiation.</p>
-<h4>Signaling</h4>
+<h4 id="Signaling">Signaling</h4>
 <p>Clause 28 builds on 10BASE-T link integrity test pulses. Following in <a href="https://www.youtube.com/watch?v=i8CmibhvZ0c">Ben Eater's footsteps</a>, I hooked an oscilloscope up to an Ethernet cable between two hosts to observe the signaling first-hand.</p>
 <p>Here's what a 10BASE-T link integrity test pulse (or normal link pulse, NLP) looks like:</p>
 <p><img src="/static/images/networking/ethernet/auto-negotiation/normal-link-pulse.png" alt="Oscilloscope waveform of a 10BASE-T link integrity test pulse" /></p>
@@ -41,13 +42,13 @@
 <p>Zooming in on one of the FLP bursts shows that it's made up of several NLPs:</p>
 <p><img src="/static/images/networking/ethernet/auto-negotiation/decoded-fast-link-pulse-burst.png" alt="Oscilloscope waveform of a fast link pulse burst" /></p>
 <p>Each FLP burst consists of up to 33 NLPs. 17 regularly spaced clock pulses (appearing every ~125 us) are used to synchronize the receiver's clock. A data pulse can be inserted between clock pulses to indicate a logical 1. An absent data pulse represents a logical 0. Because there are 17 clock pulses, there's room for 16 data pulses in each FLP burst, enabling the transmission of a 16-bit page of Auto-Negotiation data.</p>
-<h4>Base Page</h4>
-<h4>Next Pages</h4>
-<h4>Parallel Detection</h4>
+<h4 id="Base-Page">Base Page</h4>
+<h4 id="Next-Pages">Next Pages</h4>
+<h4 id="Parallel-Detection">Parallel Detection</h4>
 <p>Auto-Negotiation is optional for 10BASE-T and 100BASE-TX, which pre-date Clause 28. To ensure backwards compatibility with legacy devices, Parallel Detection allows an AN-capable device to fallback to either 10BASE-T or 100BASE-TX if it detects link integrity test pulses or idle code words, respectively.</p>
-<h4>Gigabit and Beyond</h4>
+<h4 id="Gigabit-and-Beyond">Gigabit and Beyond</h4>
 <p>Clause 28 Auto-Negotiation is required for 1000BASE-T and subsequent twisted pair standards so that link partners can negotiate their master/slave timing relationship.</p>
-<h3>Reading</h3>
+<h3 id="Reading">Reading</h3>
 <ul>
 <li>IEEE Standard for Ethernet: <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section2.pdf">Clause 28</a></li>
 <li>IEEE Standard for Ethernet: <a href="http://standards.ieee.org/getieee802/download/802.3-2012_section3.pdf">Clause 37</a></li>
@@ -55,9 +56,83 @@
 <li><a href="https://www.iol.unh.edu/sites/default/files/knowledgebase/ethernet/Copper_ANEG_JEFF_LAPAK.pdf">An Introduction to the Auto-Negotiation Process</a></li>
 </ul>
 
-  </section>
+      </main>
+      <footer>
+        Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
 
-  <footer class="container">
-    Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Built with <a href="https://claymation.github.io/void/">void</a>.
-  </footer>
-</main>
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <section class="toc">
+        <h3>Table of Contents</h3>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#Auto-Negotiation">Auto-Negotiation</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Clause-28-Auto-Negotiation">Clause 28 Auto-Negotiation</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Signaling">Signaling</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Base-Page">Base Page</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Next-Pages">Next Pages</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Parallel-Detection">Parallel Detection</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Gigabit-and-Beyond">Gigabit and Beyond</a>
+          
+          
+        
+          
+            </li></ul><li>
+          
+          <a href="#Reading">Reading</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>

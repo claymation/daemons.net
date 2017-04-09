@@ -4,25 +4,26 @@
 
 <title>UBI</title>
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
-<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
-<link rel="stylesheet" href="/static/css/main.css">
+<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-<main class="wrapper">
-  <section class="container">
-    <h1>UBI</h1>
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="UBI">UBI</h1>
 <p>UBI provides a logical volume management (LVM) layer on top of raw flash
 devices. UBI volumes are defined in terms of logical erase blocks (LEBs),
 which UBI maps to the physical erase blocks (PEBs) on the NAND device.</p>
 <p>UBI transpartently manages block wear leveling, bad blocks, and bit flips,
 freeing higher layer software from these concerns.</p>
-<h2>Physical Erase Block layout</h2>
+<h2 id="Physical-Erase-Block-layout">Physical Erase Block layout</h2>
 <pre><code>┌─────┬─────┬──────────────────────────────────────────────────┐
 │ EC  │ VID │ User data (LEB)                                  │
 └─────┴─────┴──────────────────────────────────────────────────┘
@@ -36,9 +37,39 @@ EC:  Erase counter header (64 bytes)
 VID: Volume ID header (64 bytes)
 </code></pre>
 
-  </section>
+      </main>
+      <footer>
+        Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
 
-  <footer class="container">
-    Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Built with <a href="https://claymation.github.io/void/">void</a>.
-  </footer>
-</main>
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <section class="toc">
+        <h3>Table of Contents</h3>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#UBI">UBI</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Physical-Erase-Block-layout">Physical Erase Block layout</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>

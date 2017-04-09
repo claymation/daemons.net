@@ -1,10 +1,81 @@
-.wrapper .container {
-  max-width: 80rem;
+html {
+  font-size: 62.5%;
 }
 
-footer.container {
+body {
+  background: #fff;
+  color: #3e4349;
+  font: 1.6rem 'Lato', serif;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #000;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 0.5em;
+  color: #383a42;
+  background: #fafafa;
+}
+
+code {
+  font: 1.6rem 'Source Code Pro', monospace;
+}
+
+.document {
+  width: 94rem;
+  margin: 3rem auto 0 auto;
+}
+
+.documentwrapper {
+  float: left;
+  width: 100%;
+}
+
+.contentwrapper {
+  margin: 0 0 0 22rem;
+}
+
+.content {
+  margin-bottom: 3rem;
+  padding: 0 3rem;
+}
+
+.sidebar {
+  float: left;
+  font-size: 1.4rem;
+  margin-left: -100%;
+  width: 22rem;
+}
+
+.sidebarwrapper {
+  padding: 1.8rem 1rem;
+}
+
+.toc ul {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.toc ul ul {
+  margin: 0 0 0 2rem;
+  list-style: square;
+}
+
+.toc a {
+  border-bottom: 1px dotted #999;
+  color: #444;
+  text-decoration: none;
+}
+
+footer {
   border-top: solid 1px #eee;
-  color: #aaa;
-  padding: 3rem 0;
+  color: #999;
+  padding: 1.5rem 0;
   text-align: center;
 }

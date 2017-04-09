@@ -4,19 +4,20 @@
 
 <title>Flash</title>
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
-<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
-<link rel="stylesheet" href="/static/css/main.css">
+<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-<main class="wrapper">
-  <section class="container">
-    <h1>Flash</h1>
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="Flash">Flash</h1>
 <p>Flash is a generic term for non-volatile solid-state memory. It differs from
 traditional block storage in fundamental ways:</p>
 <ul>
@@ -28,7 +29,7 @@ typically insulate higher layers from bad blocks)</li>
 </ul>
 <p>Counterintuitively, the flash erase operation sets bits to the logic high (1)
 state, while the program operation sets bits to the logic low (0) state.</p>
-<h2>NOR flash</h2>
+<h2 id="NOR-flash">NOR flash</h2>
 <p>NOR flash is available in megabit to gigabit densities and serial (SPI) or
 parallel interfaces.</p>
 <p>NOR flash is organized into sectors (typ. 64 kB) of pages (typ. 256 bytes).
@@ -40,7 +41,7 @@ can be read and programmed. Reads are fast: sustained transfer rates of tens
 of megabytes per second are possible. Writes are slow: kilobytes per second.</p>
 <p>Because of its good random-access read performance, NOR flash can be used for
 execute-in-place (XIP) applications, such as bootloaders.</p>
-<h3>Command set</h3>
+<h3 id="Command-set">Command set</h3>
 <p>NOR flash chips commonly use one-byte commands to initiate read, program, and
 erase cycles and to read status and identification registers. Common commands
 include:</p>
@@ -53,10 +54,10 @@ include:</p>
 <li>sector erase</li>
 <li>bulk erase</li>
 </ul>
-<h3>CFI</h3>
+<h3 id="CFI">CFI</h3>
 <p>The <a href="http://www.jedec.org/sites/default/files/docs/jesd68-01.pdf">Common Flash Interface (CFI)</a> specification defines a protocol for
 software to query a flash device's identity and geometry.</p>
-<h2>NAND flash</h2>
+<h2 id="NAND-flash">NAND flash</h2>
 <p>NAND flash offers higher densities (up to several terabits) and faster program
 and erase cycles than NOR flash, at the expense of no random-access
 capability.</p>
@@ -76,10 +77,10 @@ kB). The block (aka eraseblock) is the smallest unit that can be erased. The
 page is nominally the smallest unit that can be read or programmed, though
 some NAND flashes support sub-page reads and writes.</p>
 <p>Most NAND flash is parallel, though serial devices are available.</p>
-<h3>ONFI</h3>
+<h3 id="ONFI">ONFI</h3>
 <p>The <a href="http://www.onfi.org/%7E/media/onfi/specs/onfi_4_0-gold.pdf?la=en">Open NAND Flash Interface (ONFI)</a> specification describes a parameter
 page that software can use to determine chip identity and geometry.</p>
-<h3>Flash translation layer</h3>
+<h3 id="Flash-translation-layer">Flash translation layer</h3>
 <p>A flash translation layer (FTL) can be used to emulate a traditional block
 device on top of raw NAND flash.</p>
 <p>Common FTL implementations include:</p>
@@ -90,9 +91,76 @@ device on top of raw NAND flash.</p>
 <li>USB flash drives</li>
 </ul>
 
-  </section>
+      </main>
+      <footer>
+        Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
 
-  <footer class="container">
-    Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Built with <a href="https://claymation.github.io/void/">void</a>.
-  </footer>
-</main>
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <section class="toc">
+        <h3>Table of Contents</h3>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#Flash">Flash</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#NOR-flash">NOR flash</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Command-set">Command set</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#CFI">CFI</a>
+          
+          
+        
+          
+            </li></ul><li>
+          
+          <a href="#NAND-flash">NAND flash</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#ONFI">ONFI</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Flash-translation-layer">Flash translation layer</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>
