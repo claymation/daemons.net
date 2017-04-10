@@ -1,16 +1,13 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<meta charset="utf-8">
-
-<title>{{ title }}</title>
-
-<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+{% block headstyles %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
-<link href="/static/css/main.css" rel="stylesheet">
+{% endblock %}
 
+{% block headscripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
 
 {% block body %}
 <div class="document">

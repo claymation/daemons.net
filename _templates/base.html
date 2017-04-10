@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
+
+{% block headstyles %}{% endblock %}
+{% block headscripts %}{% endblock %}
+
+<title>{% block title %}{{ title }}{% endblock %}</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+{% block body %}{% endblock %}
