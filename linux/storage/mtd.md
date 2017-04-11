@@ -1,103 +1,84 @@
 # MTD
 
 The Memory Technology Devices (MTD) subsystem provides a common interface to
-many types of [raw flash](/hardware/storage/flash.html) storage devices. 
+many types of [raw flash](/hardware/storage/flash.html) storage devices. It
+includes facilities for partioning flash, erasing flash, and managing bad
+blocks.
+
+
+## Listing devices and partitions
+
+The `mtdinfo` command, provided as part of the [mtd-utils][] distribution,
+displays all available MTD devices and partitions:
+
+	$ mtdinfo
+	Count of MTD devices:           5
+	Present MTD devices:            mtd0, mtd1, mtd2, mtd3, mtd4
+	Sysfs interface supported:      yes
+
+Given a device argument (or `--all`), `mtdinfo` prints detailed device
+information:
+
+	$ mtdinfo /dev/mtd0
+	mtd0
+	Name:                           NAND 128MiB 1,8V 8-bit
+	Type:                           nand
+	Eraseblock size:                16384 bytes, 16.0 KiB
+	Amount of eraseblocks:          8192 (134217728 bytes, 128.0 MiB)
+	Minimum input/output unit size: 512 bytes
+	Sub-page size:                  256 bytes
+	OOB size:                       16 bytes
+	Character device major/minor:   90:0
+	Bad blocks are allowed:         true
+	Device is writable:             true
+
+Like many such userspace tools, `mtdinfo` is a thin wrapper around the MTD
+SysFS interface in `/sys/class/mtd`.
 
 
 ## Devices
 
-MTD provides a character device interface for I/O and `ioctl`s:
+MTD provides a pair of character devices for each flash device and partition:
 
-  * `/dev/mtdX`: read-write
-  * `/dev/mtdXro`: read-only
+  * `/dev/mtdX` (read-write)
+  * `/dev/mtdXro` (read-only)
 
-Each pair of `mtdX` devices represents either an entire flash device or a
-single partition on a flash device.
+Most [mtd-utils][] commands take a `/dev/mtdX` device node as an argument.
 
-You can read any number of bytes from a `/dev/mtdX` device; MTD transparently
-reads the required number of pages from the device and copies the requested
-number of bytes to the userspace buffer. Writes, however, must be done in
-multiples of the write size (as reported by `/sys/class/mtd/mtdX/writesize`).
+You can read/write directly from/to `/dev/mtdX` devices, but there are
+complications:
 
-Here's an example from a (simulated, see below) NAND flash with a 512-byte
-write size:
+  * reads can be any size, but writes must be a multiple of the device's
+    minimum write size (as reported by `/sys/class/mtd/mtdX/writesize`)
+  * blocks must be erased before they can be written
+  * on NAND devices, reading from or writing to a bad block may produce
+    unexpected results
 
-``` txt
-$ dd if=/dev/mtd0 of=/dev/null bs=1 count=1
-1+0 records in
-1+0 records out
-1 byte copied, 0.000174195 s, 5.7 kB/s
 
-$ dd if=/dev/zero of=/dev/mtd0 bs=1 count=1
-dd: error writing '/dev/mtd0': Invalid argument
-1+0 records in
-0+0 records out
-0 bytes copied, 0.000312924 s, 0.0 kB/s
-```
+## Partitions
 
-Reading an erased flash returns bytes with all bits set (0xff):
-
-``` txt
-$ dd if=/dev/mtd0 bs=512 count=1 | hd
-1+0 records in
-1+0 records out
-512 bytes copied, 0.0078236 s, 65.4 kB/s
-
-00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
-*
-00000200
-```
-
-Writing the flash can reset the bits to zero, but can not set them back to
-one:
-
-``` txt
-# write (program) all the bits to zero
-$ dd if=/dev/zero of=/dev/mtd0 bs=512 count=1
-1+0 records in
-1+0 records out
-512 bytes copied, 0.0021276 s, 241 kB/s
-
-# all the bits are now zero
-$ dd if=/dev/mtd0 bs=512 count=1 | hd
-1+0 records in
-1+0 records out
-512 bytes copied, 0.0078236 s, 65.4 kB/s
-
-00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-*
-00000200
-
-# attempt to write (program) arbitrary data
-$ dd if=/dev/urandom of=/dev/mtd0 bs=512 count=1
-1+0 records in
-1+0 records out
-512 bytes copied, 0.000195163 s, 2.6 MB/s
-
-# all the bits are *still* zero
-$ dd if=/dev/mtd0 count=1 2>/dev/null | hd
-00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-*
-00000200
-```
+MTD allows flash devices to be carved into partitions. Several on-flash
+partition table formats are supported, as well as partitions defined on the
+kernel command line or in the device tree.
 
 
 ## Utilities
 
-The `flash_erase` utility from the [mtd-utils] distribution erases all bytes
-(sets all the bits to one) in a block (or an entire mtd partition):
+The `flash_erase` utility from the [mtd-utils][] distribution erases all bytes
+(data and out-of-band) of a device, partition, or subset of blocks:
 
-``` txt
-$ flash_erase /dev/mtd0 0 0
-Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
+	$ flash_erase /dev/mtd0 0 0
+	Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
 
-$ dd if=/dev/mtd0 bs=512 count=1 2>/dev/null | hd
-00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
-*
-00000200
-```
+Reading an erased flash returns all-ones:
 
-The `mtdpart` utility adds and deletes MTD partitions. (TODO: example)
+	$ dd if=/dev/mtd0 bs=512 count=1 | hd
+	00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+	*
+	00000200
+
+The `mtdpart` utility adds and deletes MTD partitions (but does not update
+on-flash partition tables).
 
 
 ### NAND simulator
@@ -105,227 +86,32 @@ The `mtdpart` utility adds and deletes MTD partitions. (TODO: example)
 MTD includes a NAND simulator module (`nandsim`) that attaches a virtual MTD
 device:
 
-``` txt
-$ modprobe nandsim
+	$ modprobe nandsim
 
-$ mtdinfo -a
-Count of MTD devices:           1
-Present MTD devices:            mtd0
-Sysfs interface supported:      yes
+	$ mtdinfo -a
+	Count of MTD devices:           1
+	Present MTD devices:            mtd0
+	Sysfs interface supported:      yes
 
-mtd0
-Name:                           NAND simulator partition 0
-Type:                           nand
-Eraseblock size:                16384 bytes, 16.0 KiB
-Amount of eraseblocks:          8192 (134217728 bytes, 128.0 MiB)
-Minimum input/output unit size: 512 bytes
-Sub-page size:                  256 bytes
-OOB size:                       16 bytes
-Character device major/minor:   90:0
-Bad blocks are allowed:         true
-Device is writable:             true
-```
+	mtd0
+	Name:                           NAND simulator partition 0
+	Type:                           nand
+	Eraseblock size:                16384 bytes, 16.0 KiB
+	Amount of eraseblocks:          8192 (134217728 bytes, 128.0 MiB)
+	Minimum input/output unit size: 512 bytes
+	Sub-page size:                  256 bytes
+	OOB size:                       16 bytes
+	Character device major/minor:   90:0
+	Bad blocks are allowed:         true
+	Device is writable:             true
 
-## Details
 
-### libmtd
-
-The [mtd-utils] distribution includes a static library (libmtd.a) that wraps the
-MTD ioctls in a tidy API:
-
-``` c
-/**
- * mtd_get_dev_info - get information about an MTD device.
- * @desc: MTD library descriptor
- * @node: name of the MTD device node
- * @mtd: the MTD device information is returned here
- *
- * This function gets information about MTD device defined by the @node device
- * node file and saves this information in the @mtd object. Returns %0 in case
- * of success and %-1 in case of failure. If MTD subsystem is not present in the
- * system, or the MTD device does not exist, errno is set to @ENODEV.
- */
-int mtd_get_dev_info(libmtd_t desc, const char *node, struct mtd_dev_info *mtd);
-
-/**
- * mtd_read - read data from an MTD device.
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to read from
- * @offs: offset withing the eraseblock to read from
- * @buf: buffer to read data to
- * @len: how many bytes to read
- *
- * This function reads @len bytes of data from eraseblock @eb and offset @offs
- * of the MTD device defined by @mtd and stores the read data at buffer @buf.
- * Returns %0 in case of success and %-1 in case of failure.
- */
-int mtd_read(const struct mtd_dev_info *mtd, int fd, int eb, int offs,
-             void *buf, int len);
-
-/**
- * mtd_write - write data to an MTD device.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to write to
- * @offs: offset withing the eraseblock to write to
- * @data: data buffer to write
- * @len: how many data bytes to write
- * @oob: OOB buffer to write
- * @ooblen: how many OOB bytes to write
- * @mode: write mode (e.g., %MTD_OOB_PLACE, %MTD_OOB_RAW)
- *
- * This function writes @len bytes of data to eraseblock @eb and offset @offs
- * of the MTD device defined by @mtd. Returns %0 in case of success and %-1 in
- * case of failure.
- *
- * Can only write to a single page at a time if writing to OOB.
- */
-int mtd_write(libmtd_t desc, const struct mtd_dev_info *mtd, int fd, int eb,
-              int offs, void *data, int len, void *oob, int ooblen,
-              uint8_t mode);
-
-/**
- * mtd_read_oob - read out-of-band area.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @start: page-aligned start address
- * @length: number of OOB bytes to read
- * @data: read buffer
- *
- * This function reads @length OOB bytes starting from address @start on
- * MTD device described by @fd. The address is specified as page byte offset
- * from the beginning of the MTD device. This function returns %0 in case of
- * success and %-1 in case of failure.
- */
-int mtd_read_oob(libmtd_t desc, const struct mtd_dev_info *mtd, int fd,
-                 uint64_t start, uint64_t length, void *data);
-
-/**
- * mtd_write_oob - write out-of-band area.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @start: page-aligned start address
- * @length: number of OOB bytes to write
- * @data: write buffer
- *
- * This function writes @length OOB bytes starting from address @start on
- * MTD device described by @fd. The address is specified as page byte offset
- * from the beginning of the MTD device. Returns %0 in case of success and %-1
- * in case of failure.
- */
-int mtd_write_oob(libmtd_t desc, const struct mtd_dev_info *mtd, int fd,
-                  uint64_t start, uint64_t length, void *data);
-
-int mtd_probe_node(libmtd_t desc, const char *node);
-/**
- * mtd_lock - lock eraseblocks.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to lock
- *
- * This function locks eraseblock @eb. Returns %0 in case of success and %-1
- * in case of failure.
- */
-int mtd_lock(const struct mtd_dev_info *mtd, int fd, int eb);
-
-/**
- * mtd_unlock - unlock eraseblocks.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to lock
- *
- * This function unlocks eraseblock @eb. Returns %0 in case of success and %-1
- * in case of failure.
- */
-int mtd_unlock(const struct mtd_dev_info *mtd, int fd, int eb);
-
-/**
- * mtd_erase - erase multiple eraseblocks.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: index of first eraseblock to erase
- * @blocks: the number of eraseblocks to erase
- *
- * This function erases @blocks starting at eraseblock @eb of MTD device
- * described by @fd. Returns %0 in case of success and %-1 in case of failure.
- */
-int mtd_erase_multi(libmtd_t desc, const struct mtd_dev_info *mtd,
-                        int fd, int eb, int blocks);
-
-/**
- * mtd_erase - erase an eraseblock.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to erase
- *
- * This function erases eraseblock @eb of MTD device described by @fd. Returns
- * %0 in case of success and %-1 in case of failure.
- */
-int mtd_erase(libmtd_t desc, const struct mtd_dev_info *mtd, int fd, int eb);
-
-/**
- * mtd_is_locked - see if the specified eraseblock is locked.
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to check
- *
- * This function checks to see if eraseblock @eb of MTD device described
- * by @fd is locked. Returns %0 if it is unlocked, %1 if it is locked, and
- * %-1 in case of failure. If the ioctl is not supported (support was added in
- * Linux kernel 2.6.36) or this particular device does not support it, errno is
- * set to @ENOTSUPP.
- */
-int mtd_is_locked(const struct mtd_dev_info *mtd, int fd, int eb);
-
-/**
- * mtd_torture - torture an eraseblock.
- * @desc: MTD library descriptor
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to torture
- *
- * This function tortures eraseblock @eb. Returns %0 in case of success and %-1
- * in case of failure.
- */
-int mtd_torture(libmtd_t desc, const struct mtd_dev_info *mtd, int fd, int eb);
-
-/**
- * mtd_is_bad - check if eraseblock is bad.
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to check
- *
- * This function checks if eraseblock @eb is bad. Returns %0 if not, %1 if yes,
- * and %-1 in case of failure.
- */
-int mtd_is_bad(const struct mtd_dev_info *mtd, int fd, int eb);
-
-/**
- * mtd_mark_bad - mark an eraseblock as bad.
- * @mtd: MTD device description object
- * @fd: MTD device node file descriptor
- * @eb: eraseblock to mark as bad
- *
- * This function marks eraseblock @eb as bad. Returns %0 in case of success and
- * %-1 in case of failure.
- */
-int mtd_mark_bad(const struct mtd_dev_info *mtd, int fd, int eb);
-```
-
+## Programming Interfaces
 
 ### `ioctl` ABI
 
-Behind the scenes, `flash_erase` invokes `ioctl(MEMERASE)` on the mtd device.
-Many such ioctls are defined, forming the userspace control interface to the
-MTD subsystem, including:
+Behind the scenes, the [mtd-utils][] commands interact with the MTD subsystem
+via an `ioctl` interface:
 
 ``` c
 /* Get basic MTD characteristics info (better to use sysfs) */
@@ -361,6 +147,27 @@ MTD subsystem, including:
  */
 #define MEMWRITE                _IOWR('M', 24, struct mtd_write_req)
 ```
+
+
+### libmtd
+
+The [mtd-utils] source builds a static library (libmtd.a) that wraps the MTD
+ioctls in a tidy API, e.g., `mtd_mark_bad()`:
+
+``` c
+/**
+ * mtd_mark_bad - mark an eraseblock as bad.
+ * @mtd: MTD device description object
+ * @fd: MTD device node file descriptor
+ * @eb: eraseblock to mark as bad
+ *
+ * This function marks eraseblock @eb as bad. Returns %0 in case of success and
+ * %-1 in case of failure.
+ */
+int mtd_mark_bad(const struct mtd_dev_info *mtd, int fd, int eb);
+```
+
+Sadly, libmtd.a is not included in the [mtd-utils][] binary distribution.
 
 
 ### Kernel API
