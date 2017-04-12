@@ -6,7 +6,7 @@ includes facilities for partioning flash, erasing flash, and managing bad
 blocks.
 
 
-## Listing devices and partitions
+## Devices and partitions
 
 The `mtdinfo` command, provided as part of the [mtd-utils][] distribution,
 displays all available MTD devices and partitions:
@@ -32,11 +32,11 @@ information:
 	Bad blocks are allowed:         true
 	Device is writable:             true
 
-Like many such userspace tools, `mtdinfo` is a thin wrapper around the MTD
-SysFS interface in `/sys/class/mtd`.
+Like many such userspace tools, `mtdinfo` is a thin wrapper around the
+[MTD sysfs interface][] in `/sys/class/mtd`.
 
 
-## Devices
+### Devices
 
 MTD provides a pair of character devices for each flash device and partition:
 
@@ -54,31 +54,15 @@ complications:
   * on NAND devices, reading from or writing to a bad block may produce
     unexpected results
 
+For these reasons, the [mtd-utils utilities](#MTD Utilities) are often used
+for flash I/O.
 
-## Partitions
+
+### Partitions
 
 MTD allows flash devices to be carved into partitions. Several on-flash
 partition table formats are supported, as well as partitions defined on the
-kernel command line or in the device tree.
-
-
-## Utilities
-
-The `flash_erase` utility from the [mtd-utils][] distribution erases all bytes
-(data and out-of-band) of a device, partition, or subset of blocks:
-
-	$ flash_erase /dev/mtd0 0 0
-	Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
-
-Reading an erased flash returns all-ones:
-
-	$ dd if=/dev/mtd0 bs=512 count=1 | hd
-	00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
-	*
-	00000200
-
-The `mtdpart` utility adds and deletes MTD partitions (but does not update
-on-flash partition tables).
+[kernel command line][cmdlinepart] or in the [device tree][ofpart].
 
 
 ### NAND simulator
@@ -102,6 +86,94 @@ device:
 	Sub-page size:                  256 bytes
 	OOB size:                       16 bytes
 	Character device major/minor:   90:0
+	Bad blocks are allowed:         true
+	Device is writable:             true
+
+
+## MTD Utilities
+
+MTD includes a suite of userspace tools, distributed as [mtd-utils].
+
+
+### flash_erase
+
+The `flash_erase` utility erases the data and out-of-band areas of a device,
+partition, or range of blocks:
+
+	$ flash_erase /dev/mtd0 0 0
+	Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
+
+Reading an erased flash returns all-ones:
+
+	$ dd if=/dev/mtd0 bs=512 count=1 | hd
+	00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+	*
+	00000200
+
+
+### nanddump
+
+The `nanddump` utility dumps the contents of an MTD device, skipping any bad
+blocks that it encounters:
+
+	$ nanddump /dev/mtd0 -f nand.img
+	ECC failed: 0
+	ECC corrected: 0
+	Number of bad blocks: 0
+	Number of bbt blocks: 0
+	Block size 16384, page size 512, OOB size 16
+	Dumping data starting at 0x00000000 and ending at 0x08000000...
+
+It can optionally dump out-of-band data and bad blocks.
+
+
+### nandwrite
+
+The `nandwrite` utility copies a source file to an MTD device, skipping any
+bad blocks that it encounters:
+
+	$ sudo nandwrite /dev/mtd0 nand.img
+	Writing data to block 0 at offset 0x0
+	Writing data to block 1 at offset 0x4000
+	Writing data to block 2 at offset 0x8000
+	Writing data to block 3 at offset 0xc000
+	...
+
+
+### mtdpart
+
+The `mtdpart` utility adds and deletes MTD partitions (but does not update
+the on-flash partition table):
+
+	$ mtdinfo
+	Count of MTD devices:           2
+	Present MTD devices:            mtd0, mtd1
+	Sysfs interface supported:      yes
+
+	$ sudo mtdpart del /dev/mtd0 1
+
+	$ mtdinfo
+	Count of MTD devices:           1
+	Present MTD devices:            mtd0
+	Sysfs interface supported:      yes
+
+	$ sudo mtdpart add /dev/mtd0 ubi 0 1048576
+
+	$ mtdinfo
+	Count of MTD devices:           2
+	Present MTD devices:            mtd0, mtd1
+	Sysfs interface supported:      yes
+
+	$ mtdinfo /dev/mtd1
+	mtd1
+	Name:                           ubi
+	Type:                           nand
+	Eraseblock size:                16384 bytes, 16.0 KiB
+	Amount of eraseblocks:          64 (1048576 bytes, 1024.0 KiB)
+	Minimum input/output unit size: 512 bytes
+	Sub-page size:                  256 bytes
+	OOB size:                       16 bytes
+	Character device major/minor:   90:2
 	Bad blocks are allowed:         true
 	Device is writable:             true
 
@@ -184,10 +256,20 @@ int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
 ```
 
 Device drivers register MTD devices with the MTD core via
-[`mtd_device_register()`](http://elixir.free-electrons.com/ident?v=4.10&i=mtd_device_register).
+[`mtd_device_register()`](http://lxr.free-electrons.com/ident?v=4.10&i=mtd_device_register).
 
+
+## Reading
+
+  * [MTD FAQ](http://www.linux-mtd.infradead.org/faq/general.html)
+  * [MTD Documentation](http://www.linux-mtd.infradead.org/doc/general.html)
+  * [Managing flash storage with Linux](http://free-electrons.com/blog/managing-flash-storage-with-linux/)
 
 [mtd-utils]: http://git.infradead.org/mtd-utils.git
+[MTD sysfs interface]:
+http://lxr.free-electrons.com/source/Documentation/ABI/testing/sysfs-class-mtd
 [UBI]: ubi.html
 [include/linux/mtd/mtd.h]:
-http://elixir.free-electrons.com/source/include/linux/mtd/mtd.h
+http://lxr.free-electrons.com/source/include/linux/mtd/mtd.h
+[cmdlinepart]: http://lxr.free-electrons.com/source/drivers/mtd/cmdlinepart.c
+[ofpart]: http://lxr.free-electrons.com/source/drivers/mtd/ofpart.c

@@ -29,7 +29,7 @@
 many types of <a href="/hardware/storage/flash.html">raw flash</a> storage devices. It
 includes facilities for partioning flash, erasing flash, and managing bad
 blocks.</p>
-<h2 id="Listing-devices-and-partitions">Listing devices and partitions</h2>
+<h2 id="Devices-and-partitions">Devices and partitions</h2>
 <p>The <code>mtdinfo</code> command, provided as part of the <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a> distribution,
 displays all available MTD devices and partitions:</p>
 <pre><code class="nohighlight">$ mtdinfo
@@ -52,9 +52,9 @@ Character device major/minor:   90:0
 Bad blocks are allowed:         true
 Device is writable:             true
 </code></pre>
-<p>Like many such userspace tools, <code>mtdinfo</code> is a thin wrapper around the MTD
-SysFS interface in <code>/sys/class/mtd</code>.</p>
-<h2 id="Devices">Devices</h2>
+<p>Like many such userspace tools, <code>mtdinfo</code> is a thin wrapper around the
+<a href="http://lxr.free-electrons.com/source/Documentation/ABI/testing/sysfs-class-mtd">MTD sysfs interface</a> in <code>/sys/class/mtd</code>.</p>
+<h3 id="Devices">Devices</h3>
 <p>MTD provides a pair of character devices for each flash device and partition:</p>
 <ul>
 <li><code>/dev/mtdX</code> (read-write)</li>
@@ -70,24 +70,12 @@ minimum write size (as reported by <code>/sys/class/mtd/mtdX/writesize</code>)</
 <li>on NAND devices, reading from or writing to a bad block may produce
 unexpected results</li>
 </ul>
-<h2 id="Partitions">Partitions</h2>
+<p>For these reasons, the [mtd-utils utilities](#MTD Utilities) are often used
+for flash I/O.</p>
+<h3 id="Partitions">Partitions</h3>
 <p>MTD allows flash devices to be carved into partitions. Several on-flash
 partition table formats are supported, as well as partitions defined on the
-kernel command line or in the device tree.</p>
-<h2 id="Utilities">Utilities</h2>
-<p>The <code>flash_erase</code> utility from the <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a> distribution erases all bytes
-(data and out-of-band) of a device, partition, or subset of blocks:</p>
-<pre><code class="nohighlight">$ flash_erase /dev/mtd0 0 0
-Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
-</code></pre>
-<p>Reading an erased flash returns all-ones:</p>
-<pre><code class="nohighlight">$ dd if=/dev/mtd0 bs=512 count=1 | hd
-00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
-*
-00000200
-</code></pre>
-<p>The <code>mtdpart</code> utility adds and deletes MTD partitions (but does not update
-on-flash partition tables).</p>
+<a href="http://lxr.free-electrons.com/source/drivers/mtd/cmdlinepart.c">kernel command line</a> or in the <a href="http://lxr.free-electrons.com/source/drivers/mtd/ofpart.c">device tree</a>.</p>
 <h3 id="NAND-simulator">NAND simulator</h3>
 <p>MTD includes a NAND simulator module (<code>nandsim</code>) that attaches a virtual MTD
 device:</p>
@@ -107,6 +95,77 @@ Minimum input/output unit size: 512 bytes
 Sub-page size:                  256 bytes
 OOB size:                       16 bytes
 Character device major/minor:   90:0
+Bad blocks are allowed:         true
+Device is writable:             true
+</code></pre>
+<h2 id="MTD-Utilities">MTD Utilities</h2>
+<p>MTD includes a suite of userspace tools, distributed as <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a>.</p>
+<h3 id="flash">flash_erase</h3>
+<p>The <code>flash_erase</code> utility erases the data and out-of-band areas of a device,
+partition, or range of blocks:</p>
+<pre><code class="nohighlight">$ flash_erase /dev/mtd0 0 0
+Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
+</code></pre>
+<p>Reading an erased flash returns all-ones:</p>
+<pre><code class="nohighlight">$ dd if=/dev/mtd0 bs=512 count=1 | hd
+00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+*
+00000200
+</code></pre>
+<h3 id="nanddump">nanddump</h3>
+<p>The <code>nanddump</code> utility dumps the contents of an MTD device, skipping any bad
+blocks that it encounters:</p>
+<pre><code class="nohighlight">$ nanddump /dev/mtd0 -f nand.img
+ECC failed: 0
+ECC corrected: 0
+Number of bad blocks: 0
+Number of bbt blocks: 0
+Block size 16384, page size 512, OOB size 16
+Dumping data starting at 0x00000000 and ending at 0x08000000...
+</code></pre>
+<p>It can optionally dump out-of-band data and bad blocks.</p>
+<h3 id="nandwrite">nandwrite</h3>
+<p>The <code>nandwrite</code> utility copies a source file to an MTD device, skipping any
+bad blocks that it encounters:</p>
+<pre><code class="nohighlight">$ sudo nandwrite /dev/mtd0 nand.img
+Writing data to block 0 at offset 0x0
+Writing data to block 1 at offset 0x4000
+Writing data to block 2 at offset 0x8000
+Writing data to block 3 at offset 0xc000
+...
+</code></pre>
+<h3 id="mtdpart">mtdpart</h3>
+<p>The <code>mtdpart</code> utility adds and deletes MTD partitions (but does not update
+the on-flash partition table):</p>
+<pre><code class="nohighlight">$ mtdinfo
+Count of MTD devices:           2
+Present MTD devices:            mtd0, mtd1
+Sysfs interface supported:      yes
+
+$ sudo mtdpart del /dev/mtd0 1
+
+$ mtdinfo
+Count of MTD devices:           1
+Present MTD devices:            mtd0
+Sysfs interface supported:      yes
+
+$ sudo mtdpart add /dev/mtd0 ubi 0 1048576
+
+$ mtdinfo
+Count of MTD devices:           2
+Present MTD devices:            mtd0, mtd1
+Sysfs interface supported:      yes
+
+$ mtdinfo /dev/mtd1
+mtd1
+Name:                           ubi
+Type:                           nand
+Eraseblock size:                16384 bytes, 16.0 KiB
+Amount of eraseblocks:          64 (1048576 bytes, 1024.0 KiB)
+Minimum input/output unit size: 512 bytes
+Sub-page size:                  256 bytes
+OOB size:                       16 bytes
+Character device major/minor:   90:2
 Bad blocks are allowed:         true
 Device is writable:             true
 </code></pre>
@@ -164,7 +223,7 @@ int mtd_mark_bad(const struct mtd_dev_info *mtd, int fd, int eb);
 <p>Sadly, libmtd.a is not included in the <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a> binary distribution.</p>
 <h3 id="Kernel-API">Kernel API</h3>
 <p>Higher layer kernel subsystems (flash filesytems, <a href="ubi.html">UBI</a>) interact with raw
-flash via the MTD API defined in <a href="http://elixir.free-electrons.com/source/include/linux/mtd/mtd.h">include/linux/mtd/mtd.h</a>, including:</p>
+flash via the MTD API defined in <a href="http://lxr.free-electrons.com/source/include/linux/mtd/mtd.h">include/linux/mtd/mtd.h</a>, including:</p>
 <pre><code class="language-c">int mtd_read(struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
 int mtd_write(struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf);
 int mtd_erase(struct mtd_info *mtd, struct erase_info *instr);
@@ -172,7 +231,13 @@ int mtd_read_oob(struct mtd_info *mtd, loff_t from, struct mtd_oob_ops *ops);
 int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
 </code></pre>
 <p>Device drivers register MTD devices with the MTD core via
-<a href="http://elixir.free-electrons.com/ident?v=4.10&amp;i=mtd_device_register"><code>mtd_device_register()</code></a>.</p>
+<a href="http://lxr.free-electrons.com/ident?v=4.10&amp;i=mtd_device_register"><code>mtd_device_register()</code></a>.</p>
+<h2 id="Reading">Reading</h2>
+<ul>
+<li><a href="http://www.linux-mtd.infradead.org/faq/general.html">MTD FAQ</a></li>
+<li><a href="http://www.linux-mtd.infradead.org/doc/general.html">MTD Documentation</a></li>
+<li><a href="http://free-electrons.com/blog/managing-flash-storage-with-linux/">Managing flash storage with Linux</a></li>
+</ul>
 
       </main>
       <footer>
@@ -198,12 +263,12 @@ int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
           
             <ul><li>
           
-          <a href="#Listing-devices-and-partitions">Listing devices and partitions</a>
+          <a href="#Devices-and-partitions">Devices and partitions</a>
           
           
         
           
-            </li><li>
+            <ul><li>
           
           <a href="#Devices">Devices</a>
           
@@ -219,14 +284,42 @@ int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
           
             </li><li>
           
-          <a href="#Utilities">Utilities</a>
+          <a href="#NAND-simulator">NAND simulator</a>
+          
+          
+        
+          
+            </li></ul><li>
+          
+          <a href="#MTD-Utilities">MTD Utilities</a>
           
           
         
           
             <ul><li>
           
-          <a href="#NAND-simulator">NAND simulator</a>
+          <a href="#flash">flash</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#nanddump">nanddump</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#nandwrite">nandwrite</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#mtdpart">mtdpart</a>
           
           
         
@@ -258,8 +351,13 @@ int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
           
           
         
+          
+            </li></ul><li>
+          
+          <a href="#Reading">Reading</a>
+          
+          
         
-          </li></ul>
         
           </li></ul>
         
