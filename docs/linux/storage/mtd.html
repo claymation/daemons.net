@@ -32,14 +32,14 @@ blocks.</p>
 <h2 id="Listing-devices-and-partitions">Listing devices and partitions</h2>
 <p>The <code>mtdinfo</code> command, provided as part of the <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a> distribution,
 displays all available MTD devices and partitions:</p>
-<pre><code>$ mtdinfo
+<pre><code class="nohighlight">$ mtdinfo
 Count of MTD devices:           5
 Present MTD devices:            mtd0, mtd1, mtd2, mtd3, mtd4
 Sysfs interface supported:      yes
 </code></pre>
 <p>Given a device argument (or <code>--all</code>), <code>mtdinfo</code> prints detailed device
 information:</p>
-<pre><code>$ mtdinfo /dev/mtd0
+<pre><code class="nohighlight">$ mtdinfo /dev/mtd0
 mtd0
 Name:                           NAND 128MiB 1,8V 8-bit
 Type:                           nand
@@ -77,11 +77,11 @@ kernel command line or in the device tree.</p>
 <h2 id="Utilities">Utilities</h2>
 <p>The <code>flash_erase</code> utility from the <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a> distribution erases all bytes
 (data and out-of-band) of a device, partition, or subset of blocks:</p>
-<pre><code>$ flash_erase /dev/mtd0 0 0
+<pre><code class="nohighlight">$ flash_erase /dev/mtd0 0 0
 Erasing 16 Kibyte @ 7ffc000 -- 100 % complete 
 </code></pre>
 <p>Reading an erased flash returns all-ones:</p>
-<pre><code>$ dd if=/dev/mtd0 bs=512 count=1 | hd
+<pre><code class="nohighlight">$ dd if=/dev/mtd0 bs=512 count=1 | hd
 00000000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 *
 00000200
@@ -91,7 +91,7 @@ on-flash partition tables).</p>
 <h3 id="NAND-simulator">NAND simulator</h3>
 <p>MTD includes a NAND simulator module (<code>nandsim</code>) that attaches a virtual MTD
 device:</p>
-<pre><code>$ modprobe nandsim
+<pre><code class="nohighlight">$ modprobe nandsim
 
 $ mtdinfo -a
 Count of MTD devices:           1
