@@ -100,7 +100,7 @@ Device is writable:             true
 </code></pre>
 <h2 id="MTD-Utilities">MTD Utilities</h2>
 <p>MTD includes a suite of userspace tools, distributed as <a href="http://git.infradead.org/mtd-utils.git">mtd-utils</a>.</p>
-<h3 id="flash">flash_erase</h3>
+<h3 id="flash-erase">flash_erase</h3>
 <p>The <code>flash_erase</code> utility erases the data and out-of-band areas of a device,
 partition, or range of blocks:</p>
 <pre><code class="nohighlight">$ flash_erase /dev/mtd0 0 0
@@ -298,7 +298,7 @@ int mtd_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops);
           
             <ul><li>
           
-          <a href="#flash">flash</a>
+          <a href="#flash-erase">flash_erase</a>
           
           
         
