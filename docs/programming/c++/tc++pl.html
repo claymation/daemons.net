@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<title>The C++ Programming Language</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="The-C-Programming-Language">The C++ Programming Language</h1>
+<p>Bjarne Stroustrup
+4th Edition
+2013
+<a href="http://www.stroustrup.com/4th.html">Homepage</a></p>
+<h2 id="Part-I-Introduction">Part I: Introduction</h2>
+<h3 id="1-Notes-to-the-Reader">1. Notes to the Reader</h3>
+<p>C++ is not (strictly) an object-oriented programming language (§1.2.1). It
+aims to support several popular programming styles and techniques:</p>
+<ul>
+<li>Procedural programming</li>
+<li>Data abstraction</li>
+<li>Object-oriented programming</li>
+<li>Generic programming</li>
+</ul>
+<p>C++11 adds <em>rvalue</em> references which make functional programming techniques
+(passing around temporary objects instead of mutating objects with identity)
+more efficient (§1.2.1).</p>
+<p>The static type system in C++ is key to good performance (§1.2.2).</p>
+<p>C and C++ are distinct languages: C++ is not a proper superset of C (§1.2.3).
+The languages have evolved independently, borrowing features from each other
+along the way. However (§44.3):</p>
+<blockquote>
+<p>The definition of C++ has been revised to ensure that a construct that is
+both legal C and legal C++ has the same meaning in both languages</p>
+</blockquote>
+<p>C++ was designed to be efficient (§1.2.4). Except for dynamic memory
+allocation (<code>new</code> and <code>delete</code>), run-time type information (<code>typeid</code> and
+<code>dynamic_cast</code>), and exceptions (<code>try</code> and <code>throw</code>), the language requires no
+run-time support.</p>
+<h2 id="Part-II-Basic-Facilities">Part II: Basic Facilities</h2>
+<h3 id="6-Types-and-Declarations">6. Types and Declarations</h3>
+<p>Standards-compliant code isn't necessarily good code (§6.1). It's not
+necessarily portable, either, as many features are implementation-defined.
+Use static assertions to verify assumptions about the implementation. Avoid
+unspecified and undefined behavior.</p>
+<p>C++ runs in hosted or freestanding environments (§6.1.1). Implementations
+targeting freestanding environments allow language features (like exceptions)
+to be disabled and include fewer library facilities (e.g., no STL).</p>
+<p>The C++ type system is based on the fundamental data storage units provided by
+most computers (§6.2.1) -- namely, 32- and 64-bit integer registers, floating
+point registers, and byte-addressable memory.</p>
+<p>Of the fundamental types, use only <code>bool</code>, <code>char</code>, <code>int</code>, and <code>double</code>, unless
+you have specialized space or performance requirements.</p>
+<p><code>char</code>, <code>signed char</code>, and <code>unsigned char</code> are distinct types (§6.2.3); you
+can't mix pointers between the types.</p>
+<p>Naked <code>char</code> will be equivalent to either <code>signed char</code> or <code>unsigned char</code>
+(implementation-defined).</p>
+<p>The C++ standard supports ones-complement hardware (like, incidentally, the
+Apollo Guidance Computer). As such, the value -128 may not be supported in an
+8-bit <code>signed char</code> on all platforms.</p>
+<p>C++ defines the character literal underlying type as <code>char</code>, unlike C99 which
+defines it as <code>int</code>.</p>
+
+      </main>
+      <footer>
+        Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
+      <section class="toc">
+        <h2>Table of Contents</h2>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#The-C-Programming-Language">The C++ Programming Language</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Part-I-Introduction">Part I: Introduction</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#1-Notes-to-the-Reader">1. Notes to the Reader</a>
+          
+          
+        
+          
+            </li></ul><li>
+          
+          <a href="#Part-II-Basic-Facilities">Part II: Basic Facilities</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#6-Types-and-Declarations">6. Types and Declarations</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>
