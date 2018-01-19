@@ -2,33 +2,21 @@
 
 <meta charset="utf-8">
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
-<link href="/static/css/main.css" rel="stylesheet">
+<title>The C++ Programming Language</title>
 
-
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-<title>The C++ Programming Language</title>
-
-<meta name="author" content="Clay McClure">
-<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
-
-
-<div class="document">
-  <div class="documentwrapper">
-    <div class="contentwrapper">
-      <main class="content">
-        <h1 id="The-C-Programming-Language">The C++ Programming Language</h1>
-<p>Bjarne Stroustrup
-4th Edition
-2013
-<a href="http://www.stroustrup.com/4th.html">Homepage</a></p>
+<section class="container">
+  <h1 id="The-C-Programming-Language">The C++ Programming Language</h1>
+<p><a href="http://www.stroustrup.com/4th.html">4th Edition</a> (2013)<br />
+Bjarne Stroustrup</p>
 <h2 id="Part-I-Introduction">Part I: Introduction</h2>
 <h3 id="1-Notes-to-the-Reader">1. Notes to the Reader</h3>
 <p>C++ is not (strictly) an object-oriented programming language (§1.2.1). It
@@ -45,10 +33,10 @@ more efficient (§1.2.1).</p>
 <p>The static type system in C++ is key to good performance (§1.2.2).</p>
 <p>C and C++ are distinct languages: C++ is not a proper superset of C (§1.2.3).
 The languages have evolved independently, borrowing features from each other
-along the way. However (§44.3):</p>
+along the way. However:</p>
 <blockquote>
 <p>The definition of C++ has been revised to ensure that a construct that is
-both legal C and legal C++ has the same meaning in both languages</p>
+both legal C and legal C++ has the same meaning in both languages.</p>
 </blockquote>
 <p>C++ was designed to be efficient (§1.2.4). Except for dynamic memory
 allocation (<code>new</code> and <code>delete</code>), run-time type information (<code>typeid</code> and
@@ -57,84 +45,199 @@ run-time support.</p>
 <h2 id="Part-II-Basic-Facilities">Part II: Basic Facilities</h2>
 <h3 id="6-Types-and-Declarations">6. Types and Declarations</h3>
 <p>Standards-compliant code isn't necessarily good code (§6.1). It's not
-necessarily portable, either, as many features are implementation-defined.
-Use static assertions to verify assumptions about the implementation. Avoid
-unspecified and undefined behavior.</p>
+necessarily portable, either, as many features are implementation-defined (due
+to target platform hardware differences), and most real-world code uses
+facilities defined by the system (e.g., POSIX), not the language.</p>
+<p>Use compile-time static assertions (<code>static_assert()</code>) to verify assumptions
+about the implementation. Avoid unspecified and undefined behavior. Use static
+analysis tools.</p>
 <p>C++ runs in hosted or freestanding environments (§6.1.1). Implementations
 targeting freestanding environments allow language features (like exceptions)
 to be disabled and include fewer library facilities (e.g., no STL).</p>
-<p>The C++ type system is based on the fundamental data storage units provided by
-most computers (§6.2.1) -- namely, 32- and 64-bit integer registers, floating
-point registers, and byte-addressable memory.</p>
+<p>C++ is strongly-typed (§6.2):</p>
+<blockquote>
+<p>Every name (identifier) in a C++ program has a type associated with it.</p>
+</blockquote>
+<p>The type system is based on the fundamental data storage units provided by
+most computers (§6.2.1):</p>
+<blockquote>
+<p>The assumption is that a computer provides bytes for holding characters,
+words for holding and computing integer values, some entity most suitable for
+floating-point computation, and addresses for referring to those entities.</p>
+</blockquote>
 <p>Of the fundamental types, use only <code>bool</code>, <code>char</code>, <code>int</code>, and <code>double</code>, unless
 you have specialized space or performance requirements.</p>
-<p><code>char</code>, <code>signed char</code>, and <code>unsigned char</code> are distinct types (§6.2.3); you
-can't mix pointers between the types.</p>
-<p>Naked <code>char</code> will be equivalent to either <code>signed char</code> or <code>unsigned char</code>
-(implementation-defined).</p>
-<p>The C++ standard supports ones-complement hardware (like, incidentally, the
-Apollo Guidance Computer). As such, the value -128 may not be supported in an
-8-bit <code>signed char</code> on all platforms.</p>
-<p>C++ defines the character literal underlying type as <code>char</code>, unlike C99 which
-defines it as <code>int</code>.</p>
+<p><code>char</code> is equivalent to either <code>signed char</code> or <code>unsigned char</code>
+(implementation-defined), and at least 8 bits wide (§6.2.3).</p>
+<p>The C++ standard supports ones-complement hardware. As such, the value -128
+may not be representable in an 8-bit <code>signed char</code> on all platforms.</p>
+<p><code>char</code>, <code>signed char</code>, and <code>unsigned char</code> are distinct types; you
+can't mix pointers between the types (§6.2.3.1).</p>
+<p>C++ defines character literals (<code>'a'</code>) as <code>char</code>, unlike C which defines them
+as <code>int</code> (§6.2.3.2).</p>
+<p>Integer types come in three flavors (plain, <code>signed</code>, <code>unsigned</code>) and four
+sizes (<code>short</code>, plain, <code>long</code>, and <code>long long</code>) (§6.2.4). The plain integer
+types (<code>int</code>, <code>long</code>, etc) are always signed; the <code>signed</code> types are synonyms
+for the plain types.  The <code>unsigned</code> types are best used to represent bit
+arrays; any other use (to increase numerical range or enforce positive
+values) is fraught due to implict type conversion.</p>
+<p>The type of an integer literal depends on its form (decimal, octal, or hex),
+value, and suffix (§6.2.4.2). There's a long list of rules, but the take home
+message is to be explicit (using suffixes) whenever you want something besides
+an <code>int</code>:</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
 
-      </main>
-      <footer>
-        Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Made with <a href="https://claymation.github.io/void/">void</a>.
-      </footer>
-    </div>
-  </div>
+int main() {
+  std::cout &lt;&lt; (0xBEEF &lt;&lt; 16) &lt;&lt; std::endl;
+}
+</code></pre>
+<p>prints <code>-1091633152</code> on a machine with 32-bit <code>int</code>s, while:</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
 
-  <div class="sidebar">
-    <div class="sidebarwrapper">
-      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
-      <section class="toc">
-        <h2>Table of Contents</h2>
-        
-        
-          
-            <ul><li>
-          
-          <a href="#The-C-Programming-Language">The C++ Programming Language</a>
-          
-          
-        
-          
-            <ul><li>
-          
-          <a href="#Part-I-Introduction">Part I: Introduction</a>
-          
-          
-        
-          
-            <ul><li>
-          
-          <a href="#1-Notes-to-the-Reader">1. Notes to the Reader</a>
-          
-          
-        
-          
-            </li></ul><li>
-          
-          <a href="#Part-II-Basic-Facilities">Part II: Basic Facilities</a>
-          
-          
-        
-          
-            <ul><li>
-          
-          <a href="#6-Types-and-Declarations">6. Types and Declarations</a>
-          
-          
-        
-        
-          </li></ul>
-        
-          </li></ul>
-        
-          </li></ul>
-        
-      </section>
-    </div>
-  </div>
-</div>
+int main() {
+  std::cout &lt;&lt; (0xBEEFU &lt;&lt; 16) &lt;&lt; std::endl;
+}
+</code></pre>
+<p>prints <code>3203334144</code>.</p>
+<p>Floating point literals are of type <code>double</code> unless a type suffix is supplied
+(§6.2.5.1).</p>
+<p>Programmers can define suffix operators for user-defined types (§6.2.6),
+opening the possiblity for literals like <code>&quot;foo bar&quot;s</code> and <code>123_km</code> -- who
+knew?</p>
+<p><code>void</code> is a fundamental type useful only in building more complex types; there
+are no <code>void</code> objects (§6.2.7).</p>
+<p>Stroustrup wants you to write portable code (§6.2.8):</p>
+<blockquote>
+<p>People who claim they don’t care about portability usually do so because
+they use only a single system and feel they can afford the attitude that “the
+language is what my compiler implements.” This is a narrow and shortsighted
+view.</p>
+</blockquote>
+<p>On the sizes of the fundamental types (§6.2.8):</p>
+<blockquote>
+<p>Sizes of C++ objects are expressed in terms of multiples of the size of a
+char, so by definition the size of a char is 1.
+...
+[I]t is guaranteed that a char has at least 8 bits, a short at least 16 bits,
+and a long at least 32 bits.</p>
+</blockquote>
+<p>The fundamental types can be intermixed in expressions; the compiler converts
+values as necessary, but cannot always preserve the value, as when converting a
+wider type to a narrower one, or a floating type to an integer:</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+
+int main()
+{
+  double  d = 123456.789;
+  int     i = d;
+  short   s = d;
+  char    c = d;
+  bool    b = d;
+
+  std::cout &lt;&lt; std::fixed
+            &lt;&lt; &quot;d: &quot; &lt;&lt; d &lt;&lt; '\n'
+            &lt;&lt; &quot;i: &quot; &lt;&lt; i &lt;&lt; '\n'
+            &lt;&lt; &quot;s: &quot; &lt;&lt; s &lt;&lt; '\n'
+            &lt;&lt; &quot;c: &quot; &lt;&lt; (int)c &lt;&lt; '\n'
+            &lt;&lt; &quot;b: &quot; &lt;&lt; b &lt;&lt; '\n';
+}
+</code></pre>
+<p>produces:</p>
+<pre><code class="language-txt">d: 123456.789000
+i: 123456
+s: -7616
+c: 64
+b: 1
+</code></pre>
+<p>Caveat programmor: value-destroying conversions are perfectly legal and don't
+produce any compiler warnings. Per Stroustrup (§6.2.8):</p>
+<blockquote>
+<p>Conversions that are not value-preserving are best avoided.</p>
+</blockquote>
+<p>Two non-fundamental but useful types defined in `<cstddef> are:</p>
+<ul>
+<li><code>size_t</code>, capable of representing the size (in bytes) of any object</li>
+<li><code>ptrdiff_t</code>, capable of representing the difference between any two pointers
+(i.e., the number of elements in an array)</li>
+</ul>
+<p>An object may occupy more memory than its type suggests; the extra memory is
+padding due to the alignment requirements of the hardware (§6.2.9). The
+<code>alignof()</code> operator and <code>alignas()</code> type specifier can be used to get or set,
+respectively, the alignment of an object.</p>
+<p>Declarations specify the type of an entity; definitions reserve memory for it
+(§6.3):</p>
+<blockquote>
+<p>There must always be exactly one definition for each name in a C++ program.
+However, there can be many declarations.</p>
+</blockquote>
+<p>Declarations can be quite complex, including optional prefix specifiers
+(<code>static</code>, <code>virtual</code>), suffix function specifiers (<code>const</code>, <code>noexcept</code>), and
+initializer or function body, but all declarations include a base type and a
+declarator. The declarator defines the name and may include declarator
+operators (<code>*</code>, <code>&amp;</code>, <code>[]</code>, <code>()</code>) to define pointers, references, arrays, and
+functions. The postfix declarator operators (<code>[]</code> and <code>()</code>) bind tighter than
+the prefix operators (<code>*</code> and <code>&amp;</code>), so parentheses are required to declare
+types like <em>pointer-to-function</em>: <code>void (*fn)(void)</code>.</p>
+<p>While multiple names can be declared in a single declaration, declaration
+operators bind to a single name (6.3.2). Thus:</p>
+<pre><code class="language-c++">char *p, q;
+</code></pre>
+<p>defines <code>p</code> as <em>pointer-to-<code>char</code></em>, and <code>q</code> as a plain <code>char</code>.</p>
+<blockquote>
+<p>Such declarations with multiple names and nontrivial declarators make a
+program harder to read and should be avoided.</p>
+</blockquote>
+<p>Some names are reserved for the implementation (§6.3.3):</p>
+<ul>
+<li>non-local names beginning with underscore (<code>_start</code>)</li>
+<li>any name beginning with an underscore and uppercase letter (<code>_Bool</code>)</li>
+<li>any name containing a double underscore (<code>__func__</code>)</li>
+</ul>
+<p>Stroustrup offers some advice on naming (one of [two hard things] in
+computer science):</p>
+<blockquote>
+<p>Names from a large scope ought to have relatively long and reasonably
+obvious names. However, code is clearer if names used only in a small scope
+have short, conventional names such as x, i, and p. ... Use all capitals for
+macros and never for non-macros.</p>
+</blockquote>
+<p>Four syntactic styles of object initialization are possible (§6.3.5):</p>
+<ul>
+<li><code>X a1 {v};</code>: list initialization</li>
+<li><code>X a2 = {v};</code>: aggregate-stle initialization</li>
+<li><code>X a2 = v;</code>: assignment-style initialization</li>
+<li><code>X a3(v);</code>: function-style initialization</li>
+</ul>
+<p>List initializtion is new in C++11. According to Stroustrup, this is the
+preferred style as it can be used in every context and avoids narrowing
+conversions (e.g., <code>long</code> to <code>int</code> and <code>double</code> to <code>float</code>). Personally,
+I find it rather ugly.</p>
+<p>You probably <em>don't</em> want list initialization when using <code>auto</code> for type
+deduction, though; the deduced type would be <code>std::initializer_list&lt;T&gt;</code>.</p>
+<p>The empty list initializer (<code>{}</code>) initializes an object to the type's default
+value.</p>
+<p>Initialization is not required (§6.3.5.1), but:</p>
+<blockquote>
+<p>The only really good case for an uninitialized variable is a large input buffer.</p>
+</blockquote>
+<p>The value of an uninitialized variable depends on the type of the variable and
+its storage duration:</p>
+<p>Global, namespace, local <code>static</code>, and <code>static</code> member variables are
+initialized to <code>{}</code> of the appropriate type. For the built-in types, this
+happens by virtue of the fact that the <code>.bss</code> segment is zeroed by the program
+loader. For user-defined types, the compiler inserts calls to the type's
+default constructor before the object is first referenced.</p>
+<p>Variables of built-in type with automatic or dynamic storage duration are not
+default initialized. Automatic and dynamic variables of user-defined type are
+default initialized by calling the default constructor.</p>
+<p>In declarations empty parentheses define a function, so to explicitly default
+initialize an object use <code>{}</code> rather than <code>()</code> (§6.3.5.2):</p>
+<pre><code class="language-c++">T x{}; // not T x();
+</code></pre>
+
+</section>
+
+
+<section class="container">
+  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
+</section>
