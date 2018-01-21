@@ -2,19 +2,29 @@
 
 <meta charset="utf-8">
 
-<title>The C++ Programming Language</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-<link rel="stylesheet" href="https://cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
-<link rel="stylesheet" href="https://cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-<section class="container">
-  <h1 id="The-C-Programming-Language">The C++ Programming Language</h1>
+<title>The C++ Programming Language</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="The-C-Programming-Language">The C++ Programming Language</h1>
 <p><a href="http://www.stroustrup.com/4th.html">4th Edition</a> (2013)<br />
 Bjarne Stroustrup</p>
 <h2 id="Part-I-Introduction">Part I: Introduction</h2>
@@ -42,6 +52,8 @@ both legal C and legal C++ has the same meaning in both languages.</p>
 allocation (<code>new</code> and <code>delete</code>), run-time type information (<code>typeid</code> and
 <code>dynamic_cast</code>), and exceptions (<code>try</code> and <code>throw</code>), the language requires no
 run-time support.</p>
+<p>I'm skipping the rest of Part I (a brief tour of C++) and jumping ahead to the
+details.</p>
 <h2 id="Part-II-Basic-Facilities">Part II: Basic Facilities</h2>
 <h3 id="6-Types-and-Declarations">6. Types and Declarations</h3>
 <p>Standards-compliant code isn't necessarily good code (§6.1). It's not
@@ -154,7 +166,7 @@ produce any compiler warnings. Per Stroustrup (§6.2.8):</p>
 <blockquote>
 <p>Conversions that are not value-preserving are best avoided.</p>
 </blockquote>
-<p>Two non-fundamental but useful types defined in `<cstddef> are:</p>
+<p>Two non-fundamental but useful types defined in <code>&lt;cstddef&gt;</code> are:</p>
 <ul>
 <li><code>size_t</code>, capable of representing the size (in bytes) of any object</li>
 <li><code>ptrdiff_t</code>, capable of representing the difference between any two pointers
@@ -180,7 +192,7 @@ the prefix operators (<code>*</code> and <code>&amp;</code>), so parentheses are
 types like <em>pointer-to-function</em>: <code>void (*fn)(void)</code>.</p>
 <p>While multiple names can be declared in a single declaration, declaration
 operators bind to a single name (6.3.2). Thus:</p>
-<pre><code class="language-c++">char *p, q;
+<pre><code class="language-c++">char* p, q;
 </code></pre>
 <p>defines <code>p</code> as <em>pointer-to-<code>char</code></em>, and <code>q</code> as a plain <code>char</code>.</p>
 <blockquote>
@@ -203,10 +215,10 @@ macros and never for non-macros.</p>
 </blockquote>
 <p>Four syntactic styles of object initialization are possible (§6.3.5):</p>
 <ul>
-<li><code>X a1 {v};</code>: list initialization</li>
-<li><code>X a2 = {v};</code>: aggregate-stle initialization</li>
-<li><code>X a2 = v;</code>: assignment-style initialization</li>
-<li><code>X a3(v);</code>: function-style initialization</li>
+<li><code>T a1 {v};</code>: list initialization</li>
+<li><code>T a2 = {v};</code>: list or aggregate initialization</li>
+<li><code>T a2 = v;</code>: assignment-style initialization</li>
+<li><code>T a3(v);</code>: function-style initialization</li>
 </ul>
 <p>List initializtion is new in C++11. According to Stroustrup, this is the
 preferred style as it can be used in every context and avoids narrowing
@@ -235,9 +247,63 @@ initialize an object use <code>{}</code> rather than <code>()</code> (§6.3.5.2)
 <pre><code class="language-c++">T x{}; // not T x();
 </code></pre>
 
-</section>
+      </main>
+      <footer>
+        Copyright © 2017 <a href="http://claymation.me">Clay McClure</a>. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
 
-
-<section class="container">
-  <small>Built with <a href="https://claymation.github.io/void/">void</a>.</small>
-</section>
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
+      <section class="toc">
+        <h2>Table of Contents</h2>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#The-C-Programming-Language">The C++ Programming Language</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Part-I-Introduction">Part I: Introduction</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#1-Notes-to-the-Reader">1. Notes to the Reader</a>
+          
+          
+        
+          
+            </li></ul><li>
+          
+          <a href="#Part-II-Basic-Facilities">Part II: Basic Facilities</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#6-Types-and-Declarations">6. Types and Declarations</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>

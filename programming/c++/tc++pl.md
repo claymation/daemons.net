@@ -170,7 +170,7 @@ produce any compiler warnings. Per Stroustrup (§6.2.8):
 
 > Conversions that are not value-preserving are best avoided.
 
-Two non-fundamental but useful types defined in `<cstddef> are:
+Two non-fundamental but useful types defined in `<cstddef>` are:
 
 * `size_t`, capable of representing the size (in bytes) of any object
 * `ptrdiff_t`, capable of representing the difference between any two pointers
@@ -200,7 +200,7 @@ While multiple names can be declared in a single declaration, declaration
 operators bind to a single name (6.3.2). Thus:
 
 ```c++
-char *p, q;
+char* p, q;
 ```
 
 defines `p` as _pointer-to-`char`_, and `q` as a plain `char`.
@@ -224,10 +224,10 @@ computer science):
 
 Four syntactic styles of object initialization are possible (§6.3.5):
 
-* `X a1 {v};`: list initialization
-* `X a2 = {v};`: aggregate-stle initialization
-* `X a2 = v;`: assignment-style initialization
-* `X a3(v);`: function-style initialization
+* `T a1 {v};`: list initialization
+* `T a2 = {v};`: list or aggregate initialization
+* `T a2 = v;`: assignment-style initialization
+* `T a3(v);`: function-style initialization
 
 List initializtion is new in C++11. According to Stroustrup, this is the
 preferred style as it can be used in every context and avoids narrowing
