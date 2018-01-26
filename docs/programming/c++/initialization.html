@@ -14,7 +14,7 @@
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-<title>Initialization</title>
+<title>C++ Object Initialization</title>
 
 <meta name="author" content="Clay McClure">
 <meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
@@ -24,101 +24,319 @@
   <div class="documentwrapper">
     <div class="contentwrapper">
       <main class="content">
-        <h1 id="Initialization">Initialization</h1>
-<h3 id="Automatic-objects">Automatic objects</h3>
-<p>C++ initializes automatic (local) variables of class type at the point of declaration, and deletes such variables when they go out of scope:</p>
-<div class="row">
-<div class="column">
-<pre><code class="language-c++">#include &lt;iostream&gt;
+        <h1 id="C-Object-Initialization">C++ Object Initialization</h1>
+<p>Initialization provides an object's initial value. The object's type,
+scope, storage duration, and context determine whether and how it is
+initialized.</p>
+<h2 id="Static-objects">Static objects</h2>
+<p>Objects with static storage duration (i.e., variables declared at namespace
+scope, <code>static</code> class members, and <code>static</code> local variables) and no explicit
+initializer are guaranteed to be <a href="http://en.cppreference.com/w/cpp/language/zero_initialization">zero-initialized</a>:</p>
+<pre><code class="language-c++">bool b;     // false
+char c;     // '\0'
+int i;      // 0
+double d;   // 0.0
+void *p;    // nullptr
 
-struct T {
-    T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
-    ~T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+void f()
+{
+    static int i;   // 0
+}
+
+class T {
+    static int i;   // declaration; definition required below
 };
 
-int main(int argc, char *argv[])
+int T::i;   // 0
+</code></pre>
+<p>Exactly how zero initialization occurs is implementation defined, but
+conventionally static objects are placed in the <code>.bss</code> section of the
+executable image, where they occupy no space, and are zero-filled at program
+start-up (by the operating system, program loader, or language run-time).</p>
+<p>Static objects of class type with a default constructor, that are not
+explicitly initialized, are <a href="http://en.cppreference.com/w/cpp/language/default_initialization">default-initialized</a> at
+run-time, before first use. When, exactly, this happens depends on the
+object's scope, and, in some cases, on the compiler. <code>static</code> locals are
+initialized the first time control passes through their declaration; globals
+and <code>static</code> members are ostensibly initialized at program start-up, before
+<code>main()</code>, but compilers can defer initialization until first use:</p>
+<pre><code class="language-c++">#include &lt;string&gt;
+
+std::string s;  // default-initialized before main() or first use
+
+void f()
 {
-    for (int i = 0; i &lt; 3; ++i)
-    {
-        T t;
+    static std::string s;   // default-initialized when f() is first called
+}
+</code></pre>
+<p>The order of initialization for static objects defined within a translation
+unit is defined (they're initialized in the order they're declared), but the
+order of initialization of objects defined in different translation units is
+undefined. Further, the objects defined in a particular translation unit may
+never be initialized if none of them is ever used by the program.</p>
+<p>Initial values for static objects can be provided with an initializer:</p>
+<pre><code class="language-c++">#include &lt;string&gt;
+
+// constant initialization
+int i = 42;
+
+// zero initialization followed by list initialization
+std::string s{&quot;foo&quot;};
+
+class T {
+    constexpr T(int x) : x{x} {}
+
+    int x;
+};
+
+// candidate for constant initialization
+T w = 42;
+</code></pre>
+<p>Compilers may be able to use <a href="http://en.cppreference.com/w/cpp/language/constant_initialization">constant initialization</a> to construct the
+object at compile-time and emit its representation in the initialized <code>.data</code>
+section of the program image. That's the case for objects of built-in type and
+class types with <code>constexpr</code> constructors and constant constructor arguments.</p>
+<p>For objects of class type <em>without</em> <code>constexpr</code> constructors, the class
+constructor is called at run-time, before first use, as described above for
+default initialization. This dynamic initialization stage occurs after the
+static zero initialization stage, which zero-fills the object's store at
+program start-up, before its constructor is invoked.</p>
+<h2 id="Automatic-objects">Automatic objects</h2>
+<p>Objects with automatic storage duration (i.e., local variables) are
+initialized each time control reaches their declaration:</p>
+<pre><code class="language-c++">#include &lt;string&gt;
+
+void f()
+{
+    int i = 42; // initialized each time f() is called
+
+    while (i--) {
+        std::string s{&quot;foo&quot;}; // initialized each iteration
     }
 }
 </code></pre>
-</div>
-<div class="column">
-<pre><code class="language-txt">T
-~T
-T
-~T
-T
-~T
-</code></pre>
-</div>
-</div>
-<p>Automatic variables of built-in type are not initialized.</p>
-<h3 id="Heap-objects">Heap objects</h3>
-<p>Similarly, objects of class type on the heap are initialized by <code>operator new</code> and deleted by <code>operator delete</code>:</p>
-<div class="row">
-<div class="column">
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<p>Without an explicit initializer, automatic objects are default-initialized.
+Objects of class type with a default constructor are default-initialized by
+calling the default constructor. Objects of class type without a default
+constructor and objects of built-in type <strong>are left uninitialized</strong> by
+default initialization.  Their value is not defined; compilers should emit
+warnings if such variables are used uninitialized. According to Stroustrup
+(<a href="tc++pl.html">TC++PL</a>):</p>
+<blockquote>
+<p>The only really good case for an uninitialized variable is a large input
+buffer.</p>
+</blockquote>
+<h2 id="Dynamic-objects">Dynamic objects</h2>
+<p>Objects with dynamic storage duration (i.e., allocated with <code>new</code>) are
+initialized by <code>operator new</code> after it allocates memory for the object:</p>
+<pre><code class="language-c++">int *pi = new int;      // uninitialized
+int *pj = new int{42};  // direct-initialized
 
-struct T {
-    T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
-    ~T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+T *pt = new T;          // default-initialized
+T *pu = new T{42};      // list-initialized
+</code></pre>
+<p>As with automatic objects, dynamic objects are default-initialized if
+no intializer is provided. Also like automatic objects, objects of built-in
+type <strong>are left uninitialized</strong> by default initialization; their values are
+not defined.</p>
+<h2 id="Non-static-members">Non-static members</h2>
+<p>Class constructors are responsible for initializing their non-<code>static</code>
+members using an initializer list or in-class initializer:</p>
+<pre><code class="language-c++">class T {
+    // Default constructor, default-initializes all members
+    T() = default;
+
+    // Constructor with initializer list
+    explicit T(int x) 
+        : i{x}  // direct-initialized
+        , j{}   // value-initialized
+    {}
+
+    int i = 42; // in-class initializer; overridden by initializer list 
+    int j;      // uninitialized by default constructor
+    int k;      // uninitialized
+}
+</code></pre>
+<p>In-class initializers provide default values that can be overridden by
+constructor initializer lists; if both are provided, the initializer list
+takes precedence.</p>
+<p>The generated default constructor default-initializes all non-<code>static</code>
+members. As before, members of built-in type <strong>are left uninitialized</strong> by
+default initialization, and therefore will have undefined values.</p>
+<h2 id="Initializers">Initializers</h2>
+<p>There are four syntactic styles of initialization:</p>
+<ul>
+<li><code>T object{ arg1, arg2, ... };</code></li>
+<li><code>T object = { arg1, arg2, ... };</code></li>
+<li><code>T object(arg1, arg2, ... );</code></li>
+<li><code>T object = arg;</code></li>
+</ul>
+<p>What they mean depends on their context and the type T.</p>
+<h3 id="List-Initialization">List Initialization</h3>
+<pre><code class="language-c++">#include &lt;string&gt;
+#include &lt;vector&gt;
+
+std::string s{&quot;foo&quot;};           // direct list initialization
+std::string t = {&quot;foo&quot;};        // copy list initialization
+
+std::vector&lt;int&gt; v{1, 2, 3};    // direct list initialization
+std::vector&lt;int&gt; w = {1, 2, 3}; // copy list initialization
+
+class T {
+    T(const std::string&amp; s)
+        : s{s}                  // direct list initialization
+    {}
+
+    std::string s;
+    std::string t{&quot;foo&quot;};       // direct list initialization
+    std::string u = {&quot;foo&quot;};    // copy list initialization
 };
 
-int main(int argc, char *argv[])
+T* tp = new T{&quot;foo&quot;};           // direct list initialization
+
+T f(T t)
 {
-    for (int i = 0; i &lt; 3; ++i) {
-        T *t = new T;
-        delete t;
-    }
+    return {&quot;foo&quot;};             // copy list initialization
+}
+
+void g()
+{
+    f({&quot;foo&quot;});                 // copy list initialization
 }
 </code></pre>
-</div>
-<div class="column">
-<pre><code class="language-txt">T
-~T
-T
-~T
-T
-~T
-</code></pre>
-</div>
-</div>
-<p>As before, obejcts of built-in type on the heap are not initialized.</p>
-<h3 id="Static-objects">Static objects</h3>
-<p>Objects of class type with static storage duration (that is, global variables, static local variables, and static class members) are initialized once before first use and deleted at program termination:</p>
-<div class="row">
-<div class="column">
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<p>These are all forms of <a href="http://en.cppreference.com/w/cpp/language/list_initialization">list initialization</a>. The common element is the
+braced-init-list, <code>{...}</code>. List initialization is new in C++11, and, according
+to Stroustrup, is the preferred method because it's general (available in all
+contexts) and safe (immune to narrowing conversions).</p>
+<p>The two forms of list initialization, direct and copy, differ in whether they
+can call <code>explicit</code> constructors: direct list initialization can,
+copy list initialization cannot.</p>
+<p>Generally, a list initialization of the form <code>T t{arg1, arg2, ...}</code> will first
+search for a constructor taking a <code>std::initializer_list&lt;&gt;</code> as the only
+non-default argument, and failing to find a match will then search for a
+constructor taking the number and type of arguments as specified in the
+braced-init-list, allowing only non-narrowing conversions. Thus, after:</p>
+<pre><code class="language-c++">#include &lt;vector&gt;
 
-struct T {
-    T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
-    ~T() { std::cout &lt;&lt; __func__ &lt;&lt; std::endl; }
+std::vector&lt;int&gt; v{100, 0};
+std::vector&lt;int&gt; w(100, 0);
+</code></pre>
+<p><code>v</code> contains exactly two elements (<code>100</code> and <code>0</code>), while <code>w</code> contains 100
+elements, all <code>0</code>, because <code>std::vector&lt;T&gt;</code> has both kinds of constructor:</p>
+<pre><code class="language-c++">template&lt;typename T&gt;
+class vector {
+    vector(std::initializer_list&lt;T&gt; init);
+    explicit vector(size_type count, const T&amp; value = T());
+}
+</code></pre>
+<p>List initialization reduces to value, aggregate, direct, or
+copy initialization in certain cases:</p>
+<ul>
+<li>an empty braced-init-list denotes <a href="http://en.cppreference.com/w/cpp/language/value_initialization">value initialization</a>, which produces
+the default value for the type</li>
+<li>a braced-init-list applied to an aggregate type denotes
+<a href="http://en.cppreference.com/w/cpp/language/aggregate_initialization">aggregate initialization</a>, which initializes individual members of the
+aggregate</li>
+<li>a braced-init-list applied to a specialization of the
+<code>std::initializer_list</code> template denotes direct or copy initialization of
+that <code>std::initializer_list</code> object</li>
+</ul>
+<h3 id="Value-Initialization">Value Initialization</h3>
+<pre><code class="language-c++">#include &lt;string&gt;
+
+bool b{};           // false
+char c{};           // '\0'
+int i{};            // 0
+double d{};         // 0.0
+std::string s{};    // &quot;&quot;
+</code></pre>
+<p>Value initialization is, in effect, zero initialization followed by
+default initialization. Because default initialization leaves objects of
+built-in type uninitialized, value initialization of built-in types is
+equivalent to zero initialization:</p>
+<pre><code class="language-c++">void f()
+{
+    int i{};    // 0
+    int j;      // undefined
+}
+</code></pre>
+<h3 id="Aggregate-Initialization">Aggregate Initialization</h3>
+<pre><code class="language-c++">struct T {
+    int x;
+    int y;
+    int z;
 };
 
-void func(void)
+T t{1, 2, 3};       // { 1, 2, 3 }
+T u = {1, 2, 3};    // { 1, 2, 3 }
+T v{1};             // { 1, 0, 0 }
+
+char a[] = {'f', 'o', 'o', '\0'};
+char b[] = &quot;foo&quot;;   // equivalent
+char c[10] = {};    // zero-filled
+</code></pre>
+<p>Aggregates are arrays and simple class types (typically <code>struct</code>s and
+<code>union</code>s) with no bases, no private members, and no user-provided
+constructors. The individual elements/members of the aggregate are
+initialized, in order, from the elements in the braced-init-list. If not
+specified, the array size is determined by the length of the initializer. If
+the initializer contains fewer elements than the type requires, the remaining
+elements are zero-initialized. As a special case, character arrays can be
+aggregate-initialized from string literals.</p>
+<p>Proving that C++ is not a superset of C, C++ does not allow designated
+initializers (until C++20, at least), which C has had since C99:</p>
+<pre><code class="language-c">struct T {
+    int x;
+    int y;
+    int z;
+};
+
+T t = {
+    .x = 1, // oops! can't do this in C++
+    .y = 2,
+    .z = 3,
+};
+</code></pre>
+<h3 id="Direct-Initialization">Direct Initialization</h3>
+<pre><code class="language-c++">#include &lt;string&gt;
+#include &lt;vector&gt;
+
+int i(42);
+int j{42};  // special case for braced-init-list with built-in types
+
+std::string s(&quot;foo&quot;);
+std::string t(10, 'a');     // &quot;aaaaaaaaaa&quot;
+
+std::vector&lt;int&gt; v(10);     // 10 0s
+std::vector&lt;int&gt; v(10, 5);  // 10 42s
+</code></pre>
+<p>Direct intialization searches for a compatible constructor, considering
+<code>explicit</code> and non-<code>explicit</code> constructors, and performing user-defined or
+standard conversions, as necessary.</p>
+<p>Direct initialization is susceptible to the <a href="http://en.wikipedia.com/wiki/Most_vexing_parse">most vexing parse</a>:</p>
+<pre><code class="language-c++">T f();  // function declaration, not (empty) direct initialization
+</code></pre>
+<h3 id="Copy-Initialization">Copy Initialization</h3>
+<pre><code class="language-c++">#include &lt;string&gt;
+
+int i = 42;
+
+std::string s = &quot;foo&quot;;
+
+std::string f(std::string s)    // s is copy-initialized from argument
 {
-    static T t;
+    return s + &quot;foo&quot;;
 }
 
-int main(int argc, char *argv[])
+void g()
 {
-    for (int i = 0; i &lt; 3; ++i)
-    {
-        func();
-    }
+    std::string s = &quot;foo&quot;;
+    std::string t = f(s);   // t is copy-initialized from temporary
 }
 </code></pre>
-</div>
-<div class="column">
-<pre><code class="language-txt">T
-~T
-</code></pre>
-</div>
-</div>
-<p>Objects of built-in type with static storage duration are initialized as in C: they're zero-initialized by the program loader or the language run-time.</p>
+<p>Copy initialization is less permissive than direct initialization: it only
+searches non-<code>explicit</code> constructors, and requires that the initializer be
+convertible to the object type.</p>
 
       </main>
       <footer>
@@ -137,12 +355,19 @@ int main(int argc, char *argv[])
           
             <ul><li>
           
-          <a href="#Initialization">Initialization</a>
+          <a href="#C-Object-Initialization">C++ Object Initialization</a>
           
           
         
           
             <ul><li>
+          
+          <a href="#Static-objects">Static objects</a>
+          
+          
+        
+          
+            </li><li>
           
           <a href="#Automatic-objects">Automatic objects</a>
           
@@ -151,14 +376,56 @@ int main(int argc, char *argv[])
           
             </li><li>
           
-          <a href="#Heap-objects">Heap objects</a>
+          <a href="#Dynamic-objects">Dynamic objects</a>
           
           
         
           
             </li><li>
           
-          <a href="#Static-objects">Static objects</a>
+          <a href="#Non-static-members">Non-static members</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Initializers">Initializers</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#List-Initialization">List Initialization</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Value-Initialization">Value Initialization</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Aggregate-Initialization">Aggregate Initialization</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Direct-Initialization">Direct Initialization</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Copy-Initialization">Copy Initialization</a>
           
           
         
