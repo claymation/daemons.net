@@ -261,5 +261,8 @@ In declarations empty parentheses define a function, so to explicitly default
 initialize an object use `{}` rather than `()` (§6.3.5.2):
 
 ```c++
-T x{}; // not T x();
+T x{}; // declares, defines, and initializes a T
+T y(); // declares a function returning T
 ```
+
+[two hard things]: https://martinfowler.com/bliki/TwoHardThings.html
