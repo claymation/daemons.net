@@ -191,19 +191,28 @@ Declarations can be quite complex, including optional prefix specifiers
 (`static`, `virtual`), suffix function specifiers (`const`, `noexcept`), and
 initializer or function body, but all declarations include a base type and a
 declarator. The declarator defines the name and may include declarator
-operators (`*`, `&`, `[]`, `()`) to define pointers, references, arrays, and
-functions. The postfix declarator operators (`[]` and `()`) bind tighter than
-the prefix operators (`*` and `&`), so parentheses are required to declare
-types like _pointer-to-function_: `void (*fn)(void)`.
+operators (`*`, `&`, `[]`, `()`) to declare pointers, references, arrays, and
+functions, respectively. The postfix declarator operators (`[]` and `()`) bind
+tighter than the prefix operators (`*` and `&`), so parentheses are required
+to declare types like _pointer-to-function_, thus:
 
-While multiple names can be declared in a single declaration, declaration
-operators bind to a single name (6.3.2). Thus:
+```c++
+void (*f)();
+
+void *g();
+```
+
+declares `f` as _pointer-to-function_ and `g` as a function returning
+_`void`-pointer_.
+
+While multiple names can be declared in a single declaration, declarator
+operators bind to exactly one name (6.3.2). Thus:
 
 ```c++
 char* p, q;
 ```
 
-defines `p` as _pointer-to-`char`_, and `q` as a plain `char`.
+declares `p` as _pointer-to-`char`_, and `q` as a plain `char`.
 
 > Such declarations with multiple names and nontrivial declarators make a
 > program harder to read and should be avoided.
