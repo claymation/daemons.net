@@ -1,9 +1,6 @@
 # daemons.net
 
-Compendium of technical articles on Linux, networking, and
-programming.
-
-## Table of Contents
+Notes on computers.
 
  * [Hardware](hardware/)
 	 * [Processors](hardware/processors/)
