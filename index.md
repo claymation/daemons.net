@@ -6,6 +6,7 @@ programming.
 ## Table of Contents
 
  * [Hardware](hardware/)
+	 * [Processors](hardware/processors/)
 	 * [Storage](hardware/storage/)
  * [Linux](linux/)
 	 * [Storage](linux/storage/)

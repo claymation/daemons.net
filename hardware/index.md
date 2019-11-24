@@ -1,3 +1,4 @@
 # Hardware
 
-  * [Storage](storage) -- persistent data storage technology
+  * [Processors](processors/) -- CPUs
+  * [Storage](storage/) -- persistent data storage technology

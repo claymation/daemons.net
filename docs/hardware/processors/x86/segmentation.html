@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato:400" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<title>Segmentation</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@TenaciousDebug">
+<meta name="twitter:title" content="Segmentation">
+<meta name="twitter:description" content="How could the 8086 microprocessor, with its 16-bit registers and data bus, address 20 bits (1 MiB) of memory? Segmentation. Physical addresses were constructed from two 16-bit registers: segment and offset.">
+<meta name="twitter:image" content="http://daemons.net/static/images/tuxdemon.png">
+
+
+
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="Segmentation">Segmentation</h1>
+<h2 id="Real-mode">Real mode</h2>
+<p>How could the 8086 microprocessor, with its 16-bit registers and data bus,
+address 20 bits (1 MiB) of memory? Segmentation. Physical addresses were
+constructed from two 16-bit registers: segment and offset.</p>
+<p>Segment registers:</p>
+<ul>
+<li><code>cs</code>: code segment</li>
+<li><code>ss</code>: stack segment</li>
+<li><code>ds</code>: data segment</li>
+<li><code>es</code>: extra segment</li>
+</ul>
+<p>Examples:</p>
+<pre><code class="nohighlight">cs:ip == (cs &lt;&lt; 4) + ip
+ss:sp == (ss &lt;&lt; 4) + sp
+ds:si == (ds &lt;&lt; 4) + si
+es:di == (es &lt;&lt; 4) + di
+</code></pre>
+<h2 id="Protected-mode">Protected mode</h2>
+<p>The 16-bit segment registers are repurposed to hold a segment selector, which
+points to a segment descriptor in a segment descriptor table:</p>
+<pre><code class="nohighlight">    Segment Selector
+           in
+  Segmentation Register
+┌────────────┬────┬─────┐          Global/Local
+│ index      │ TI │ RPL │        Descriptor Table
+└────────────┴────┴─────┘     ┌────────────────────┐
+ 15    │    3   2  1   0      │         ...        │
+       │                      ├────────────────────┤
+       └─────────────────────&gt;│ Segment Descriptor │
+                              ├────────────────────┤
+                              │         ...        │
+                              └────────────────────┘
+                                         ^
+                                         │
+                                         └─────── gdtr/ldtr
+</code></pre>
+<p>The segment selector's Table Indicator (TI) bit determines whether the selector
+points to the GDT (TI = 0) or LDT (TI = 1).</p>
+<p>The segment selector's Requestor Privilege Level (RPL) sets the CPU's Current
+Privilege Level (CPL) when the selector is loaded into the <code>cs</code> register.</p>
+<p>Segment descriptors are 8-byte structures describing the base, size, type, and
+other attributes of a memory segment:</p>
+<pre><code class="nohighlight"> 63          56  55       51           48       43  40 39          32
+┌──────────────┬───┬─────┬───────────────┬─────┬──────┬──────────────┐
+│ base (24-31) │ G │ ... │ limit (16-19) │ ... │ type │ base (16-23) │
+├──────────────┴───┴─────┴───────────┬───┴─────┴──────┴──────────────┤
+│              base (0-15)           │           limit (0-15)        │
+└────────────────────────────────────┴───────────────────────────────┘
+ 31                                                                 0
+</code></pre>
+<p>The 32-bit base can address 4 GiB. The 20-bit limit (size) supports up to 1 MiB
+segments with byte-sized granularity (G = 0) or up to 4 GiB segments with 4 KiB
+page-sized granularity (G = 1).</p>
+<h2 id="Reading">Reading</h2>
+<ul>
+<li><a href="https://software.intel.com/en-us/articles/intel-sdm">Intel® 64 and IA-32 Architectures Software Developer Manuals</a></li>
+</ul>
+
+      </main>
+      <footer>
+        Copyright © 2018 Clay McClure. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
+      <section class="toc">
+        <h2>Table of Contents</h2>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#Segmentation">Segmentation</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Real-mode">Real mode</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Protected-mode">Protected mode</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Reading">Reading</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>
