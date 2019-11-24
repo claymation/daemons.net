@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Lato|Source+Code+Pro:500" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato:400" rel="stylesheet">
 <link href="/static/css/main.css" rel="stylesheet">
 
 
@@ -194,15 +194,21 @@ However, there can be many declarations.</p>
 (<code>static</code>, <code>virtual</code>), suffix function specifiers (<code>const</code>, <code>noexcept</code>), and
 initializer or function body, but all declarations include a base type and a
 declarator. The declarator defines the name and may include declarator
-operators (<code>*</code>, <code>&amp;</code>, <code>[]</code>, <code>()</code>) to define pointers, references, arrays, and
-functions. The postfix declarator operators (<code>[]</code> and <code>()</code>) bind tighter than
-the prefix operators (<code>*</code> and <code>&amp;</code>), so parentheses are required to declare
-types like <em>pointer-to-function</em>: <code>void (*fn)(void)</code>.</p>
-<p>While multiple names can be declared in a single declaration, declaration
-operators bind to a single name (6.3.2). Thus:</p>
+operators (<code>*</code>, <code>&amp;</code>, <code>[]</code>, <code>()</code>) to declare pointers, references, arrays, and
+functions, respectively. The postfix declarator operators (<code>[]</code> and <code>()</code>) bind
+tighter than the prefix operators (<code>*</code> and <code>&amp;</code>), so parentheses are required
+to declare types like <em>pointer-to-function</em>, thus:</p>
+<pre><code class="language-c++">void (*f)();
+
+void *g();
+</code></pre>
+<p>declares <code>f</code> as <em>pointer-to-function</em> and <code>g</code> as a function returning
+<em><code>void</code>-pointer</em>.</p>
+<p>While multiple names can be declared in a single declaration, declarator
+operators bind to exactly one name (6.3.2). Thus:</p>
 <pre><code class="language-c++">char* p, q;
 </code></pre>
-<p>defines <code>p</code> as <em>pointer-to-<code>char</code></em>, and <code>q</code> as a plain <code>char</code>.</p>
+<p>declares <code>p</code> as <em>pointer-to-<code>char</code></em>, and <code>q</code> as a plain <code>char</code>.</p>
 <blockquote>
 <p>Such declarations with multiple names and nontrivial declarators make a
 program harder to read and should be avoided.</p>

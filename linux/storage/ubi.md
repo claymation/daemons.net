@@ -13,7 +13,7 @@ freeing higher layer software from these concerns.
     ┌─────┬─────┬──────────────────────────────────────────────────┐
     │ EC  │ VID │ User data (LEB)                                  │
     └─────┴─────┴──────────────────────────────────────────────────┘
-    ↑     ↑     ↑
+    ^     ^     ^
     │     │     │
     │     │     └── offset determined by flash min. I/O unit
     │     └──────── offset determined by flash min. I/O unit or NAND sub-page
