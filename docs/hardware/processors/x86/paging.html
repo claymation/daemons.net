@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato:400" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<title>Paging</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@TenaciousDebug">
+<meta name="twitter:title" content="Paging">
+<meta name="twitter:description" content="The processor views main memory as an array of 4 KiB page frames, and carves virtual address space into 4 KiB pages that can be loaded into any page frame, or none at all (paged out to a swap area, for example).">
+<meta name="twitter:image" content="http://daemons.net/static/images/tuxdemon.png">
+
+
+
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="Paging">Paging</h1>
+<p>The processor views main memory as an array of 4 KiB page frames, and carves
+virtual address space into 4 KiB pages that can be loaded into any page frame,
+or none at all (paged out to a swap area, for example).</p>
+<h2 id="32-bit">32-bit</h2>
+<p>The 32-bit linear address produced by the segmentation unit is mapped to a
+32-bit physical address by the memory management unit (MMU) using a two-level
+page table tree:</p>
+<pre><code class="nohighlight">              32-bit Linear Virtual Address
+ ┌─────────────────┬────────────────┬─────────────────────┐
+ │    Directory    │      Table     │        Offset       │
+ └─────────────────┴────────────────┴─────────────────────┘
+  31      │      22 21     │      12 11              │    0
+          │                │                         │
+          │                │                         │
+          │                │     Page                │
+          │                │     Table               │
+          │                │   ┌───────┐             │
+          │                │   │  ...  │             │
+          │    Page        │   │  ...  │             │
+          │  Directory     │   ├───────┤             │
+          │  ┌───────┐     └──&gt;│  pte  │─────────┐   │
+          │  │  ...  │         ├───────┤         V   V
+          │  │  ...  │         │  ...  │     0xAAAAABBB
+          │  ├───────┤         │  ...  │   32-bit Physical
+          └─&gt;│  pte  │────────&gt;└───────┘      Address
+             ├───────┤           4 KiB
+             │  ...  │
+             │  ...  │
+    cr3 ────&gt;└───────┘
+               4 KiB
+</code></pre>
+
+      </main>
+      <footer>
+        Copyright © 2018 Clay McClure. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
+      <section class="toc">
+        <h2>Table of Contents</h2>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#Paging">Paging</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#32-bit">32-bit</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>
