@@ -21,14 +21,14 @@ pre {
   overflow-x: auto;
   margin: 1em -0.5em;
   padding: 0.5em;
-  line-height: normal;
+  line-height: 1;
 }
 
 code {
   background: #fafafa;
   color: #383a42;
-  font: 1.6rem Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,sans-serif;
-  line-height: normal;
+  font: 1.5rem Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,sans-serif;
+  line-height: 1;
 }
 
 code.hljs {
