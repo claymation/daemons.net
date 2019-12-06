@@ -3,22 +3,64 @@
 ## Real mode
 
 How could the 8086 microprocessor, with its 16-bit registers and data bus,
-address 20 bits (1 MiB) of memory? Segmentation. Physical addresses were
-constructed from two 16-bit registers: segment and offset.
+address 20 bits (1 MiB) of memory? By adding _two_ 16-bit registers — a segment
+register and an offset register — with the segment register shifted four bits
+to the left (equivalent to multiplying by 16):
 
-Segment registers:
+                 Segment register
+        ┌───────┬───────┬───────┬───────┐
+        │   1   │   2   │   3   │   4   │
+        └───────┴───────┴───────┴───────┘
+         15                             0
+
+                         Offset register
+                ┌───────┬───────┬───────┬───────┐
+      +         │   1   │   2   │   3   │   4   │
+                └───────┴───────┴───────┴───────┘
+                 15                            0
+
+        ===========================================
+
+                     Physical Address
+        ┌───────┬───────┬───────┬───────┬───────┐
+        │   1   │   3   │   5   │   7   │   4   │
+        └───────┴───────┴───────┴───────┴───────┘
+         19                                     0
+
+It's a clever trick, but has two quirks:
+
+1. While any given segment and offset uniquely define exactly one physical
+   address, the converse is not true; any given physical address can be
+   constructed from several combinations of segments and offsets.
+
+   For example, the following segment:offset pairs produce equivalent physical
+   addresses:
+
+         F000          FF00          FFF0          FFFF 
+       +  FFFF        + 0FFF        + 00FF        + 000F
+         =====         =====         =====         =====
+         FFFFF    ≡    FFFFF    ≡    FFFFF    ≡    FFFFF
+
+2. It is possible to overflow the 20-bit physical address, in which case the
+   address wraps:
+
+         FFFF
+       +  FFFF
+         =====
+         0FFEF
+
+
+### Segments
+
+IA-32 defines six segment registers, each with a specific purpose:
 
   * `cs`: code segment
   * `ss`: stack segment
   * `ds`: data segment
   * `es`: extra segment
+  * `fs`: 
+  * `gs`: 
 
-Examples:
-
-    cs:ip == (cs << 4) + ip
-    ss:sp == (ss << 4) + sp
-    ds:si == (ds << 4) + si
-    es:di == (es << 4) + di
 
 ## Protected mode
 
