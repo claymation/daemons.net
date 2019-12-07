@@ -11,7 +11,7 @@ to the left (equivalent to multiplying by 16):
         ┌───────┬───────┬───────┬───────┐
         │   1   │   2   │   3   │   4   │
         └───────┴───────┴───────┴───────┘
-         15                             0
+         15                            0
 
                          Offset register
                 ┌───────┬───────┬───────┬───────┐
@@ -25,7 +25,7 @@ to the left (equivalent to multiplying by 16):
         ┌───────┬───────┬───────┬───────┬───────┐
         │   1   │   3   │   5   │   7   │   4   │
         └───────┴───────┴───────┴───────┴───────┘
-         19                                     0
+         19                                    0
 
 It's a clever trick, but has two quirks:
 
@@ -37,7 +37,7 @@ It's a clever trick, but has two quirks:
    addresses:
 
          F000          FF00          FFF0          FFFF 
-       +  FFFF        + 0FFF        + 00FF        + 000F
+       +  FFFF       +  0FFF       +  00FF       +  000F
          =====         =====         =====         =====
          FFFFF    ≡    FFFFF    ≡    FFFFF    ≡    FFFFF
 
@@ -47,7 +47,13 @@ It's a clever trick, but has two quirks:
          FFFF
        +  FFFF
          =====
-         0FFEF
+         0FFEF (NOT 10FFEF)
+
+   Some software written for the 8086/8088 depended on this wrap-around. When
+   the 80286 shipped in 1982 with a 24-bit address bus, system designers opted
+   to disable its 20th address pin ("A20") for backwards compatibility with the
+   previous processors. System software had to enable the A20 line in order to
+   address more than 1 MiB of memory.
 
 
 ### Segments

@@ -42,7 +42,7 @@ to the left (equivalent to multiplying by 16):</p>
     ┌───────┬───────┬───────┬───────┐
     │   1   │   2   │   3   │   4   │
     └───────┴───────┴───────┴───────┘
-     15                             0
+     15                            0
 
                      Offset register
             ┌───────┬───────┬───────┬───────┐
@@ -56,7 +56,7 @@ to the left (equivalent to multiplying by 16):</p>
     ┌───────┬───────┬───────┬───────┬───────┐
     │   1   │   3   │   5   │   7   │   4   │
     └───────┴───────┴───────┴───────┴───────┘
-     19                                     0
+     19                                    0
 </code></pre>
 <p>It's a clever trick, but has two quirks:</p>
 <ol>
@@ -67,7 +67,7 @@ constructed from several combinations of segments and offsets.</p>
 <p>For example, the following segment:offset pairs produce equivalent physical
 addresses:</p>
 <pre><code class="nohighlight">  F000          FF00          FFF0          FFFF 
-+  FFFF        + 0FFF        + 00FF        + 000F
++  FFFF       +  0FFF       +  00FF       +  000F
   =====         =====         =====         =====
   FFFFF    ≡    FFFFF    ≡    FFFFF    ≡    FFFFF
 </code></pre>
@@ -78,8 +78,13 @@ address wraps:</p>
 <pre><code class="nohighlight">  FFFF
 +  FFFF
   =====
-  0FFEF
+  0FFEF (NOT 10FFEF)
 </code></pre>
+<p>Some software written for the 8086/8088 depended on this wrap-around. When
+the 80286 shipped in 1982 with a 24-bit address bus, system designers opted
+to disable its 20th address pin (&quot;A20&quot;) for backwards compatibility with the
+previous processors. System software had to enable the A20 line in order to
+address more than 1 MiB of memory.</p>
 </li>
 </ol>
 <h3 id="Segments">Segments</h3>
