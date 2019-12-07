@@ -27,8 +27,8 @@ pre {
 code {
   background: #fafafa;
   color: #383a42;
-  font: 1.5rem Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,sans-serif;
-  line-height: 1;
+  font-family: lucida console,menlo,consolas,courier new,courier,monospace;
+  line-height: normal;
 }
 
 code.hljs {
