@@ -7,27 +7,7 @@
       <main class="content">
         {{ content | safe }}
       </main>
-      {#
-      <section class="toc">
-        <h2>Table of Contents</h2>
-        {% set last_level = [0] %}
-        {% for level, title, href in headings %}
-          {% if level > last_level[0] %}
-            <ul><li>
-          {% elif level < last_level[0] %}
-            </li></ul><li>
-          {% else %}
-            </li><li>
-          {% endif %}
-          <a href="{{ href }}">{{ title }}</a>
-          {% do last_level.clear() %}
-          {% do last_level.append(level) %}
-        {% endfor %}
-        {% for _ in range(last_level[0]) %}
-          </li></ul>
-        {% endfor %}
-      </section>
-      #}
+
       <footer>
         Copyright © 2000-2019 Clay McClure. Made with <a href="https://claymation.github.io/void/">void</a>.
       </footer>
