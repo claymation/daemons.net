@@ -40,7 +40,10 @@
           {% if level > last_level[0] %}
             <ul><li>
           {% elif level < last_level[0] %}
-            </li></ul><li>
+            {% for i in range(last_level[0] - level) %}
+              </li></ul>
+            {% endfor %}
+            <li>
           {% else %}
             </li><li>
           {% endif %}
