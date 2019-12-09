@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato:400" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<title>IA-32 and AMD64/Intel 64</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@TenaciousDebug">
+<meta name="twitter:title" content="IA-32 and AMD64/Intel 64">
+<meta name="twitter:description" content="The x86 family of processor architectures includes IA-32 32-bit processors and AMD64/Intel 64 64-bit processors.">
+<meta name="twitter:image" content="http://daemons.net/static/images/tuxdemon.png">
+
+
+
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="IA-32-and-AMD64-Intel-64">IA-32 and AMD64/Intel 64</h1>
+<p>The x86 family of processor architectures includes IA-32 32-bit processors
+and AMD64/Intel 64 64-bit processors.</p>
+<h2 id="Operating-modes">Operating modes</h2>
+<p>IA-32 processors operate in one of four modes at any time:</p>
+<ul>
+<li><strong>Real Mode</strong>, with a 16-bit segmented memory model</li>
+<li><strong>Protected Mode</strong>, which introduces memory protection and privilege levels</li>
+<li><strong>Virtual 86 Mode</strong>, which allows processors to run legacy real-mode software</li>
+<li><strong>System Management Mode</strong>, which is the bane of real-time software developers</li>
+</ul>
+<p>AMD64/Intel 64 processors provide an additional operating mode with two
+sub-modes:</p>
+<ul>
+<li><strong>Long Mode</strong>, which Intel calls IA-32e (note the &quot;e&quot;, for &quot;extensions&quot;)
+<ul>
+<li><strong>64-bit Mode</strong>, with a flat 64-bit memory model</li>
+<li><strong>Compatibility Mode</strong>, which allows 64-bit processors to run legacy software</li>
+</ul>
+</li>
+</ul>
+<h3 id="Real-mode">Real mode</h3>
+<p>How could the 8086 microprocessor, with its 16-bit registers and data bus,
+address 20 bits (1 MiB) of memory? By adding <em>two</em> 16-bit registers — a segment
+register and an offset register — with the segment register shifted four bits
+to the left (equivalent to multiplying by 16):</p>
+<pre><code class="nohighlight">             Segment register
+    ┌───────┬───────┬───────┬───────┐
+    │   1   │   2   │   3   │   4   │
+    └───────┴───────┴───────┴───────┘
+     15                            0
+
+                     Offset register
+            ┌───────┬───────┬───────┬───────┐
+  +         │   1   │   2   │   3   │   4   │
+            └───────┴───────┴───────┴───────┘
+             15                            0
+
+    =========================================
+
+                 Physical Address
+    ┌───────┬───────┬───────┬───────┬───────┐
+    │   1   │   3   │   5   │   7   │   4   │
+    └───────┴───────┴───────┴───────┴───────┘
+     19                                    0
+</code></pre>
+<p>It's a clever trick, but has two quirks:</p>
+<ol>
+<li>
+<p>While any given segment and offset uniquely define exactly one physical
+address, the converse is not true; any given physical address can be
+constructed from several combinations of segments and offsets.</p>
+<p>For example, the following segment:offset pairs produce equivalent physical
+addresses:</p>
+<pre><code class="nohighlight">  F000          FF00          FFF0          FFFF 
++  FFFF       +  0FFF       +  00FF       +  000F
+  =====         =====         =====         =====
+  FFFFF    ≡    FFFFF    ≡    FFFFF    ≡    FFFFF
+</code></pre>
+</li>
+<li>
+<p>It is possible to overflow the 20-bit physical address, in which case the
+address wraps:</p>
+<pre><code class="nohighlight">  FFFF
++  FFFF
+  =====
+  0FFEF (NOT 10FFEF)
+</code></pre>
+<p>Some software written for the 8086/8088 depended on this wrap-around. When
+the 80286 shipped in 1982 with a 24-bit address bus, system designers opted
+to disable its 20th address pin (&quot;A20&quot;) for backwards compatibility with the
+previous processors. System software had to enable the A20 line in order to
+address more than 1 MiB of memory.</p>
+</li>
+</ol>
+<p>Real-address mode defines four segment registers, each with a specific purpose:</p>
+<ul>
+<li><code>cs</code>: code segment</li>
+<li><code>ss</code>: stack segment</li>
+<li><code>ds</code>: data segment</li>
+<li><code>es</code>: extra segment</li>
+</ul>
+<h3 id="Protected-mode">Protected mode</h3>
+<p>The 16-bit segment registers are repurposed to hold a segment selector, which
+points to a segment descriptor in a segment descriptor table:</p>
+<pre><code class="nohighlight">    Segment Selector
+           in
+  Segmentation Register
+┌────────────┬────┬─────┐          Global/Local
+│ index      │ TI │ RPL │        Descriptor Table
+└────────────┴────┴─────┘     ┌────────────────────┐
+ 15    │    3   2  1   0      │         ...        │
+       │                      ├────────────────────┤
+       └─────────────────────&gt;│ Segment Descriptor │
+                              ├────────────────────┤
+                              │         ...        │
+                              └────────────────────┘
+                                         ^
+                                         │
+                                         └─────── gdtr/ldtr
+</code></pre>
+<p>The segment selector's Table Indicator (TI) bit determines whether the selector
+points to the GDT (TI = 0) or LDT (TI = 1).</p>
+<p>The segment selector's Requestor Privilege Level (RPL) sets the CPU's Current
+Privilege Level (CPL) when the selector is loaded into the <code>cs</code> register.</p>
+<p>Segment descriptors are 8-byte structures describing the base, size, type, and
+other attributes of a memory segment:</p>
+<pre><code class="nohighlight"> 63          56  55       51           48       43  40 39          32
+┌──────────────┬───┬─────┬───────────────┬─────┬──────┬──────────────┐
+│ base (24-31) │ G │ ... │ limit (16-19) │ ... │ type │ base (16-23) │
+├──────────────┴───┴─────┴───────────┬───┴─────┴──────┴──────────────┤
+│              base (0-15)           │           limit (0-15)        │
+└────────────────────────────────────┴───────────────────────────────┘
+ 31                                                                 0
+</code></pre>
+<p>The 32-bit base can address 4 GiB. The 20-bit limit (size) supports up to 1 MiB
+segments with byte-sized granularity (G = 0) or up to 4 GiB segments with 4 KiB
+page-sized granularity (G = 1).</p>
+<h3 id="Virtual-86-mode">Virtual 86 mode</h3>
+<p>Allows protected mode operating systems to run legacy 16-bit real mode software.</p>
+<h3 id="System-Management-mode">System Management mode</h3>
+<p>Allows handling of high-priority non-maskable hardware interrupts for things
+like thermal control and battery charging. Invisible to operating systems,
+except as missing cycles.</p>
+<h3 id="Long-mode">Long mode</h3>
+<h4 id="64-bit-mode">64-bit mode</h4>
+<h4 id="Compatibility-mode">Compatibility mode</h4>
+<h2 id="Paging">Paging</h2>
+<p>The processor views main memory as an array of 4 KiB page frames, and carves
+virtual address space into 4 KiB pages that can be loaded into any page frame,
+or none at all (paged out to a swap area, for example).</p>
+<h3 id="32-bit">32-bit</h3>
+<p>The 32-bit linear address produced by the segmentation unit is mapped to a
+32-bit physical address by the memory management unit (MMU) using a two-level
+page table tree:</p>
+<pre><code class="nohighlight">              32-bit Linear Virtual Address
+ ┌─────────────────┬────────────────┬─────────────────────┐
+ │    Directory    │      Table     │        Offset       │
+ └─────────────────┴────────────────┴─────────────────────┘
+  31      │      22 21      │     12 11              │    0
+          │                 │                        │
+          │                 │                        │
+          │                 │    Page                │
+          │                 │    Table               │
+          │                 │  ┌───────┐             │
+          │                 │  │  ...  │             │
+          │    Page         │  │  ...  │             │
+          │  Directory      │  ├───────┤             │
+          │  ┌───────┐      └─&gt;│  pte  │─────────┐   │
+          │  │  ...  │         ├───────┤         V   V
+          │  │  ...  │         │  ...  │     0xAAAAABBB
+          │  ├───────┤         │  ...  │   32-bit Physical
+          └─&gt;│  pte  │────────&gt;└───────┘      Address
+             ├───────┤          4 KiB
+             │  ...  │
+             │  ...  │
+    cr3 ────&gt;└───────┘
+               4 KiB
+</code></pre>
+<h3 id="32-bit-with-physical-address-extensions-PAE">32-bit with physical address extensions (PAE)</h3>
+<p>The 32-bit linear address produced by the segmentation unit is mapped to a
+36-bit physical address by the memory management unit (MMU) using a three-level
+page table tree.</p>
+<h3 id="64-bit">64-bit</h3>
+<p>The 64-bit linear address is mapped to a 64-bit physical address by the MMU
+using a four-level page table tree.</p>
+<h2 id="Notable-Developments">Notable Developments</h2>
+<h3 id="8086-1978">8086 (1978)</h3>
+<ul>
+<li>16-bit data registers (AX, BX, CX, DX)</li>
+<li>16-bit address registers (SP, BP, SI, DI)</li>
+<li>16-bit segment registers (CS, DS, ES, SS)</li>
+<li>16-bit external data bus</li>
+<li>20-bit external address bus (1 MiB addressability)</li>
+</ul>
+<h3 id="8088-1979">8088 (1979)</h3>
+<p>An 8086 with an 8-bit external data bus. The processor in IBM's PC-XT.</p>
+<h3 id="80188-1980">80188 (1980)</h3>
+<p>Reduced chip count versions of the 8088.</p>
+<h3 id="80186-1982">80186 (1982)</h3>
+<p>Reduced chip count versions of the 8086.</p>
+<h3 id="80286-1982">80286 (1982)</h3>
+<ul>
+<li>24-bit external address bus (16 MiB)</li>
+<li>Protected mode with four privilege levels</li>
+</ul>
+<h3 id="80386-1985">80386 (1985)</h3>
+<ul>
+<li>32-bit registers</li>
+<li>32-bit external data bus</li>
+<li>32-bit external address bus (4 GiB)</li>
+<li>Segmented and flat memory models</li>
+<li>4-KiB paged virtual memory</li>
+</ul>
+<h3 id="80486-1989">80486 (1989)</h3>
+<ul>
+<li>5-stage pipeline</li>
+<li>8-KiB cache</li>
+<li>Optional integrated x87 math co-processor (FPU)</li>
+</ul>
+<h3 id="Pentium-1993">Pentium (1993)</h3>
+<ul>
+<li>64-bit external data bus</li>
+<li>Some models with 64-bit MMX registers</li>
+<li>Superscalar (two pipelines = two instructions per clock)</li>
+<li>8-KiB instruction + data caches</li>
+<li>Branch prediction unit</li>
+<li>APIC</li>
+</ul>
+<h3 id="Later-models">Later models</h3>
+<p>After the Pentium, the Intel processor family tree gets a bit confusing,
+with myriad marketing names (Pentium Pro, Pentium II, Pentium III, Pentium 4,
+Pentium M, Pentium D, and Pentium Extreme Edition, to name a few) that sound
+like minor variations on a theme, but in fact represent radically new designs
+based on a bevy of microarchitectures:</p>
+<ul>
+<li>P6 Family</li>
+<li>NetBurst</li>
+<li>Pentium M</li>
+<li>Core</li>
+<li>Enhanced Core</li>
+<li>Atom</li>
+<li>Nehalem</li>
+<li>Westmere</li>
+<li>Sandy Bridge</li>
+<li>Ivy Bridge</li>
+<li>Ivy Bridge-E</li>
+<li>Haswell</li>
+<li>Haswell-E</li>
+<li>Airmont</li>
+<li>Silvermont</li>
+<li>Broadwell</li>
+<li>Skylake</li>
+<li>Kaby Lake</li>
+<li>Goldmont</li>
+<li>Knights Landing</li>
+<li>Goldmont Plus</li>
+<li>Coffee Lake</li>
+<li>Kinghts Mill</li>
+<li>Cascade Lake</li>
+<li>Ice Lake</li>
+</ul>
+<p>See <a href="https://en.wikichip.org/wiki/intel/microarchitectures">WikiChip's Intel Microarchitectures</a> page for the gory details.</p>
+<h3 id="AMD64-2003">AMD64 (2003)</h3>
+<ul>
+<li>64-bit general purpose registers</li>
+</ul>
+<h2 id="Reading">Reading</h2>
+<ul>
+<li><a href="https://stevemorse.org/8086history/8086_evolution.pdf">Intel Microprocessors 8008 to 8086 and beyond</a></li>
+<li><a href="https://software.intel.com/en-us/articles/intel-sdm">Intel® 64 and IA-32 Architectures Software Developer Manuals</a></li>
+<li><a href="https://en.wikichip.org/wiki/intel/microarchitectures">WikiChip's Intel Microarchitectures</a></li>
+</ul>
+
+      </main>
+      <footer>
+        Copyright © 2000-2019 Clay McClure. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
+      <section class="toc">
+        <h2>Table of Contents</h2>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#IA-32-and-AMD64-Intel-64">IA-32 and AMD64/Intel 64</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Operating-modes">Operating modes</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Real-mode">Real mode</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Protected-mode">Protected mode</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Virtual-86-mode">Virtual 86 mode</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#System-Management-mode">System Management mode</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Long-mode">Long mode</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#64-bit-mode">64-bit mode</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Compatibility-mode">Compatibility mode</a>
+          
+          
+        
+          
+            
+              </li></ul>
+            
+              </li></ul>
+            
+            <li>
+          
+          <a href="#Paging">Paging</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#32-bit">32-bit</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#32-bit-with-physical-address-extensions-PAE">32-bit with physical address extensions (PAE)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#64-bit">64-bit</a>
+          
+          
+        
+          
+            
+              </li></ul>
+            
+            <li>
+          
+          <a href="#Notable-Developments">Notable Developments</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#8086-1978">8086 (1978)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#8088-1979">8088 (1979)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#80188-1980">80188 (1980)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#80186-1982">80186 (1982)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#80286-1982">80286 (1982)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#80386-1985">80386 (1985)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#80486-1989">80486 (1989)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Pentium-1993">Pentium (1993)</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Later-models">Later models</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#AMD64-2003">AMD64 (2003)</a>
+          
+          
+        
+          
+            
+              </li></ul>
+            
+            <li>
+          
+          <a href="#Reading">Reading</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>

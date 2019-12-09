@@ -1,3 +1,8 @@
-# Processors
+# Processor Architectures
 
-  * [x86](x86/) -- Intel's ubiquitous 80x86 family
+  * ARM
+  * MIPS
+  * PowerPC
+  * RISC-V
+  * SPARC
+  * [x86](x86.html) -- IA-32 and AMD64/Intel 64 Architectures
