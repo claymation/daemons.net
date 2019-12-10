@@ -67,26 +67,27 @@ switching to long mode to unlock the advanced features of the chip.</p>
 <p>How could the 8086 microprocessor, with its 16-bit registers and data bus,
 address 20 bits (1 MiB) of memory? By adding <em>two</em> 16-bit registers — a segment
 register and an offset register — with the segment register shifted four bits
-to the left (equivalent to multiplying by 16):</p>
-<pre><code class="nohighlight">             Segment register
-    ┌───────┬───────┬───────┬───────┐
-    │   1   │   2   │   3   │   4   │
-    └───────┴───────┴───────┴───────┘
-     15                            0
+to the left (equivalent to multiplying by 16). For example, the logical address
+<code>1234:1234h</code> corresponds to the physical address <code>13574h</code>:</p>
+<pre><code class="nohighlight">         Segment register
+┌───────┬───────┬───────┬───────┐
+│   1   │   2   │   3   │   4   │
+└───────┴───────┴───────┴───────┘
+ 15                            0
 
-                     Offset register
-            ┌───────┬───────┬───────┬───────┐
-  +         │   1   │   2   │   3   │   4   │
-            └───────┴───────┴───────┴───────┘
-             15                            0
+                 Offset register
+        ┌───────┬───────┬───────┬───────┐
+    +   │   1   │   2   │   3   │   4   │
+        └───────┴───────┴───────┴───────┘
+         15                            0
 
-    =========================================
+=========================================
 
-                 Physical Address
-    ┌───────┬───────┬───────┬───────┬───────┐
-    │   1   │   3   │   5   │   7   │   4   │
-    └───────┴───────┴───────┴───────┴───────┘
-     19                                    0
+             Physical Address
+┌───────┬───────┬───────┬───────┬───────┐
+│   1   │   3   │   5   │   7   │   4   │
+└───────┴───────┴───────┴───────┴───────┘
+ 19                                    0
 </code></pre>
 <p>It's a clever trick, but has two quirks:</p>
 <ol>
@@ -178,29 +179,29 @@ example).</p>
 <p>The 32-bit linear address produced by the segmentation unit is mapped to a
 32-bit physical address by the memory management unit (MMU) using a two-level
 page table tree:</p>
-<pre><code class="nohighlight">              32-bit Linear Virtual Address
- ┌─────────────────┬────────────────┬─────────────────────┐
- │    Directory    │      Table     │        Offset       │
- └─────────────────┴────────────────┴─────────────────────┘
-  31      │      22 21      │     12 11              │    0
-          │                 │                        │
-          │                 │                        │
-          │                 │    Page                │
-          │                 │    Table               │
-          │                 │  ┌───────┐             │
-          │                 │  │  ...  │             │
-          │    Page         │  │  ...  │             │
-          │  Directory      │  ├───────┤             │
-          │  ┌───────┐      └─&gt;│  pte  │─────────┐   │
-          │  │  ...  │         ├───────┤         ▼   ▼
-          │  │  ...  │         │  ...  │     0xAAAAABBB
-          │  ├───────┤         │  ...  │   32-bit Physical
-          └─&gt;│  pte  │────────&gt;└───────┘      Address
-             ├───────┤          4 KiB
-             │  ...  │
-             │  ...  │
-    cr3 ────&gt;└───────┘
-               4 KiB
+<pre><code class="nohighlight">             32-bit Linear Virtual Address
+┌─────────────────┬────────────────┬─────────────────────┐
+│    Directory    │      Table     │        Offset       │
+└─────────────────┴────────────────┴─────────────────────┘
+ 31      │      22 21      │     12 11              │    0
+         │                 │                        │
+         │                 │                        │
+         │                 │    Page                │
+         │                 │    Table               │
+         │                 │  ┌───────┐             │
+         │                 │  │  ...  │             │
+         │    Page         │  │  ...  │             │
+         │  Directory      │  ├───────┤             │
+         │  ┌───────┐      └─&gt;│  pte  │─────────┐   │
+         │  │  ...  │         ├───────┤         ▼   ▼
+         │  │  ...  │         │  ...  │     0xAAAAABBB
+         │  ├───────┤         │  ...  │   32-bit Physical
+         └─&gt;│  pte  │────────&gt;└───────┘      Address
+            ├───────┤          4 KiB
+            │  ...  │
+            │  ...  │
+   cr3 ────&gt;└───────┘
+              4 KiB
 </code></pre>
 <h3 id="32-bit-with-physical-address-extensions-PAE">32-bit with physical address extensions (PAE)</h3>
 <p>The 32-bit linear address produced by the segmentation unit is mapped to a
@@ -224,38 +225,38 @@ field within an aggregate type (like a C <code>struct</code>).</li>
 or offset within the segment. Logical addresses are resolved to &quot;linear&quot;, or
 virtual, addresses by the segmentation unit, and finally to physical addresses
 that can be driven onto the address bus by the paging unit, as depicted below:</p>
-<pre><code class="nohighlight">           Base + [Scale x Index] + Displacement
-                    ┌───────────────────┐
-                    │ Effective Address │
-                    └───────────────────┘
-                              │
-                              │
-                              │
-             Logical Address  ▼
- ┌──────────────────┬───────────────────┐
- │ Segment Selector │      Offset       │
- └──────────────────┴───────────────────┘
-                    │
-                    │  Segmentation unit
-                    │
-                    ▼
- ┌──────────────────────────────────────┐
- │        Linear virtual address        │
- └──────────────────────────────────────┘
-                    │
-                    │  Paging unit
-                    │
-                    ▼
- ┌──────────────────────────────────────┐
- │           Physical Address           │
- └──────────────────────────────────────┘
-                    │
-                    │  Bus unit
-                    │
-                    ▼
-               Address Bus
+<pre><code class="nohighlight">          Base + [Scale x Index] + Displacement
+                   ┌───────────────────┐
+                   │ Effective Address │
+                   └───────────────────┘
+                             │
+                             │
+                             │
+            Logical Address  ▼
+┌──────────────────┬───────────────────┐
+│ Segment Selector │      Offset       │
+└──────────────────┴───────────────────┘
+                   │
+                   │  Segmentation unit
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│        Linear virtual address        │
+└──────────────────────────────────────┘
+                   │
+                   │  Paging unit
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│           Physical Address           │
+└──────────────────────────────────────┘
+                   │
+                   │  Bus unit
+                   │
+                   ▼
+              Address Bus
 </code></pre>
-<h2 id="Notable-Developments">Notable Developments</h2>
+<h2 id="Notable-Processors">Notable Processors</h2>
 <h3 id="8086-1978">8086 (1978)</h3>
 <ul>
 <li>16-bit data registers (AX, BX, CX, DX)</li>
@@ -298,6 +299,10 @@ that can be driven onto the address bus by the paging unit, as depicted below:</
 <li>Branch prediction unit</li>
 <li>APIC</li>
 </ul>
+<h3 id="AMD64-2003">AMD64 (2003)</h3>
+<ul>
+<li>64-bit general purpose registers</li>
+</ul>
 <h3 id="Later-models">Later models</h3>
 <p>After the Pentium, the Intel processor family tree gets a bit confusing,
 with myriad marketing names (Pentium Pro, Pentium II, Pentium III, Pentium 4,
@@ -332,10 +337,6 @@ based on a bevy of microarchitectures:</p>
 <li>Ice Lake</li>
 </ul>
 <p>See <a href="https://en.wikichip.org/wiki/intel/microarchitectures">WikiChip's Intel Microarchitectures</a> page for the gory details.</p>
-<h3 id="AMD64-2003">AMD64 (2003)</h3>
-<ul>
-<li>64-bit general purpose registers</li>
-</ul>
 <h2 id="Reading">Reading</h2>
 <ul>
 <li><a href="https://stevemorse.org/8086history/8086_evolution.pdf">Intel Microprocessors 8008 to 8086 and beyond</a></li>
@@ -466,7 +467,7 @@ based on a bevy of microarchitectures:</p>
           
             </li><li>
           
-          <a href="#Notable-Developments">Notable Developments</a>
+          <a href="#Notable-Processors">Notable Processors</a>
           
           
         
@@ -529,14 +530,14 @@ based on a bevy of microarchitectures:</p>
           
             </li><li>
           
-          <a href="#Later-models">Later models</a>
+          <a href="#AMD64-2003">AMD64 (2003)</a>
           
           
         
           
             </li><li>
           
-          <a href="#AMD64-2003">AMD64 (2003)</a>
+          <a href="#Later-models">Later models</a>
           
           
         
