@@ -69,25 +69,25 @@ address 20 bits (1 MiB) of memory? By adding <em>two</em> 16-bit registers — a
 register and an offset register — with the segment register shifted four bits
 to the left (equivalent to multiplying by 16). For example, the logical address
 <code>1234:1234h</code> corresponds to the physical address <code>13574h</code>:</p>
-<pre><code class="nohighlight">         Segment register
-┌───────┬───────┬───────┬───────┐
-│   1   │   2   │   3   │   4   │
-└───────┴───────┴───────┴───────┘
- 15                            0
+<pre><code class="nohighlight">           Segment register
+  ┌───────┬───────┬───────┬───────┬───────┐
+  │   1   │   2   │   3   │   4   ┊   0   │ &lt;&lt; 4 (shifted left four bits)
+  └───────┴───────┴───────┴───────┴───────┘
+   15                            0
 
-                 Offset register
-        ┌───────┬───────┬───────┬───────┐
-    +   │   1   │   2   │   3   │   4   │
-        └───────┴───────┴───────┴───────┘
-         15                            0
+                   Offset register
+          ┌───────┬───────┬───────┬───────┐
++         │   1   │   2   │   3   │   4   │
+          └───────┴───────┴───────┴───────┘
+           15                            0
 
-=========================================
+  =========================================
 
-             Physical Address
-┌───────┬───────┬───────┬───────┬───────┐
-│   1   │   3   │   5   │   7   │   4   │
-└───────┴───────┴───────┴───────┴───────┘
- 19                                    0
+               Physical Address
+  ┌───────┬───────┬───────┬───────┬───────┐
+  │   1   │   3   │   5   │   7   │   4   │
+  └───────┴───────┴───────┴───────┴───────┘
+   19                                    0
 </code></pre>
 <p>It's a clever trick, but has two quirks:</p>
 <ol>
@@ -146,21 +146,28 @@ points to a segment descriptor in a segment descriptor table:</p>
 </code></pre>
 <p>The segment selector's Table Indicator (TI) bit determines whether the selector
 points to the GDT (TI = 0) or LDT (TI = 1).</p>
-<p>The segment selector's Requestor Privilege Level (RPL) sets the CPU's Current
-Privilege Level (CPL) when the selector is loaded into the <code>cs</code> register.</p>
+<p>The segment selector's Requestor Privilege Level (RPL) records the CPU's Current
+Privilege Level (CPL) when the selector is loaded into a segment register.</p>
+<p>The &quot;null selector&quot; — index = 0, TI = 0 — is used to represent unused segments.
+Memory accesses to a null segment raise #GP.  For this reason, the first entry
+in the GDT cannot be used. Additionally, <code>cs</code> and <code>ss</code> can't be null — loading
+either with the null selector also raises #GP.</p>
 <p>Segment descriptors are 8-byte structures describing the base, size, type, and
 other attributes of a memory segment:</p>
-<pre><code class="nohighlight"> 63          56  55       51           48       43  40 39          32
-┌──────────────┬───┬─────┬───────────────┬─────┬──────┬──────────────┐
-│ base (24-31) │ G │ ... │ limit (16-19) │ ... │ type │ base (16-23) │
-├──────────────┴───┴─────┴───────────┬───┴─────┴──────┴──────────────┤
-│              base (0-15)           │           limit (0-15)        │
-└────────────────────────────────────┴───────────────────────────────┘
- 31                                                                 0
+<pre><code class="nohighlight"> 63          56  55     51           48     43  40 39          32
+┌──────────────┬───┬───┬───────────────┬───┬──────┬──────────────┐
+│ base (24-31) │ G │ … │ limit (16-19) │ … │ type │ base (16-23) │
+├──────────────┴───┴───┴───────────┬───┴───┴──────┴──────────────┤
+│            base (0-15)           │         limit (0-15)        │
+└──────────────────────────────────┴─────────────────────────────┘
+ 31                                                             0
 </code></pre>
 <p>The 32-bit base can address 4 GiB. The 20-bit limit (size) supports up to 1 MiB
 segments with byte-sized granularity (G = 0) or up to 4 GiB segments with 4 KiB
 page-sized granularity (G = 1).</p>
+<p>Protected mode supports a form of hardware-assisted multitasking by saving task
+state in a task state segment (TSS). However, most operating systems don't use
+hardware multitasking, opting instead to manage task switches in software.</p>
 <h3 id="Virtual-86-mode">Virtual 86 mode</h3>
 <p>Allows protected mode operating systems to run legacy 16-bit real mode software.</p>
 <h3 id="System-Management-mode">System Management mode</h3>
@@ -168,8 +175,27 @@ page-sized granularity (G = 1).</p>
 like thermal control and battery charging. Invisible to operating systems,
 except as missing cycles.</p>
 <h3 id="Long-mode">Long mode</h3>
+<p>AMD64 calls it long mode; Intel 64 calls it IA-32e.</p>
 <h4 id="64-bit-mode">64-bit mode</h4>
+<p>The full capabilities of 64-bit processors are only available when running in
+64-bit mode, which includes:</p>
+<ul>
+<li>64-bit virtual addresses in a flat memory model</li>
+<li>64-bit general purpose registers, and 8 more of them (<code>r8</code> - <code>r15</code>)</li>
+<li>RIP-relative addressing mode</li>
+</ul>
+<p>As a sub-mode of long mode, 64-bit mode can be enabled on a per-code-segment
+basis. That is, in fact, one of the only uses of segmentation in 64-bit mode.
+Another legacy IA-32 feature not supported in long mode is hardware task
+switching via the task state segment (TSS).</p>
+<p>By default, addresses are 64-bits long and operands are 32-bits long (though
+both can be overridden with instruction prefixes), yielding an LP64 data model:
+<code>long</code>s and pointers are 64-bits, while <code>int</code>s remain 32-bit. That results in
+smaller binaries and less wasted RAM than if <code>int</code>s were 64-bit.</p>
 <h4 id="Compatibility-mode">Compatibility mode</h4>
+<p>Compatibility being key to the success of AMD64, this 64-bit sub-mode, which is
+enabled on a per-code-segment basis, allows legacy 16- and 32-bit protected
+mode software to run on 64-bit systems, concurrently with 64-bit applications.</p>
 <h2 id="Paging">Paging</h2>
 <p>When paging is enabled, the processor views main memory as an array of 4 KiB
 page frames and carves the virtual address space into 4 KiB pages that can be
