@@ -70,9 +70,9 @@ register and an offset register — with the segment register shifted four bits
 to the left (equivalent to multiplying by 16). For example, the logical address
 <code>1234:1234h</code> corresponds to the physical address <code>13574h</code>:</p>
 <pre><code class="nohighlight">           Segment register
-  ┌───────┬───────┬───────┬───────┬───────┐
-  │   1   │   2   │   3   │   4   ┊   0   │ &lt;&lt; 4 (shifted left four bits)
-  └───────┴───────┴───────┴───────┴───────┘
+  ┌───────┬───────┬───────┬───────┐
+  │   1   │   2   │   3   │   4   │  &lt;&lt; 4
+  └───────┴───────┴───────┴───────┘
    15                            0
 
                    Offset register
@@ -126,8 +126,10 @@ address more than 1 MiB of memory.</p>
 <li><code>es</code>: extra segment</li>
 </ul>
 <h3 id="Protected-mode">Protected mode</h3>
-<p>The 16-bit segment registers are repurposed to hold a segment selector, which
-points to a segment descriptor in a segment descriptor table:</p>
+<p>In protected mode, all processor memory accesses go through a layer of
+indirection. The segment registers no longer contain 16-bit segment addresses,
+but are repurposed to hold segment <em>selectors</em>, which point to segment
+<em>descriptors</em> in a segment descriptor table:</p>
 <pre><code class="nohighlight">    Segment Selector
            in
   Segmentation Register
@@ -144,14 +146,23 @@ points to a segment descriptor in a segment descriptor table:</p>
                                          │
                                          └─────── gdtr/ldtr
 </code></pre>
-<p>The segment selector's Table Indicator (TI) bit determines whether the selector
-points to the GDT (TI = 0) or LDT (TI = 1).</p>
+<p>The programmer may select between two such tables: the global descriptor table
+(GDT) and the local descriptor table (LDT). The segment selector's Table
+Indicator (TI) bit determines whether the selector points to the GDT (TI = 0)
+or LDT (TI = 1). Interrupts involve another type of table, the interrupt
+descriptor table (IDT).</p>
 <p>The segment selector's Requestor Privilege Level (RPL) records the CPU's Current
 Privilege Level (CPL) when the selector is loaded into a segment register.</p>
 <p>The &quot;null selector&quot; — index = 0, TI = 0 — is used to represent unused segments.
 Memory accesses to a null segment raise #GP.  For this reason, the first entry
 in the GDT cannot be used. Additionally, <code>cs</code> and <code>ss</code> can't be null — loading
 either with the null selector also raises #GP.</p>
+<p>In addition to the four real mode segment registers, protected mode defines two
+additional registers:</p>
+<ul>
+<li><code>fs</code>: extra segment</li>
+<li><code>gs</code>: extra segment</li>
+</ul>
 <p>Segment descriptors are 8-byte structures describing the base, size, type, and
 other attributes of a memory segment:</p>
 <pre><code class="nohighlight"> 63          56  55     51           48     43  40 39          32
