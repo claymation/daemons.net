@@ -11,3 +11,4 @@
     * C++17
   * Details
     * [Initialization](initialization.html)
+    * [Templates](templates.html)

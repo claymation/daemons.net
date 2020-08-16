@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato:400" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<title>C++ Templates</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@TenaciousDebug">
+<meta name="twitter:title" content="C++ Templates">
+<meta name="twitter:description" content="Templates are recipes teaching the compiler how to make functions, classes, variables, and type aliases from ingredients provided by the user at compile time.">
+<meta name="twitter:image" content="http://daemons.net/static/images/tuxdemon.png">
+
+
+
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="C-Templates">C++ Templates</h1>
+<p>Templates are recipes teaching the compiler how to make functions, classes,
+variables, and type aliases from ingredients provided by the user at compile
+time.</p>
+<h2 id="Declaring-and-defining-templates">Declaring and defining templates</h2>
+<p>Template functions, classes, variables, and type aliases are declared and
+defined just like their non-template counterparts, except preceded with
+<code>template&lt;Params...&gt;</code>, where <code>Params...</code> is a list of one or more <a href="#Template-parameters"><em>template
+parameters</em></a>.</p>
+<pre><code class="language-c++">/*
+ * Declarations.
+ */
+template&lt;typename T&gt;
+void func();
+
+template&lt;typename T, typename U, typename V&gt;
+class Class;
+
+template&lt;typename T&gt;
+extern T var;
+
+/*
+ * Definitions.
+ */
+template&lt;typename T&gt;
+void func()
+{
+    // ...
+}
+
+template&lt;typename T, typename U, typename V&gt;
+class Class
+{
+    // ...
+};
+
+template&lt;typename T&gt;
+T var;
+
+template&lt;typename T&gt;
+using Alias = Class&lt;T&gt;;
+</code></pre>
+<p>All four types of template (function, class, variable, and type alias) can be
+declared (and defined) in namespace scope (including the global namespace, as
+above) or in class scope.</p>
+<h2 id="Template-class-members">Template class members</h2>
+<p>Template classes can contain static and non-static (i.e., instance) data and
+function members, just as with ordinary (non-template) classes. They can also
+contain template members (function, class, static variable, and type alias).</p>
+<p>To refer to template class members from outside the template class definition,
+the member name is preceded by <code>template&lt;Params...&gt;</code>, just as in the template
+class declaration, <em>and</em> the template class name is followed by an additional
+<code>&lt;...&gt;</code> containing the template parameter names:</p>
+<pre><code class="language-c++">template&lt;typename T&gt;
+class Bar
+{
+public:
+    // Ordinary function member
+    Bar();
+
+    // Ordinary non-static data member
+    int i;
+
+    // Ordinary static data member
+    static int si;
+
+    // Template function member
+    template&lt;typename U&gt;
+    void func();
+
+    // Nested template class
+    template&lt;typename U&gt;
+    class Baz
+    {
+    public:
+        // Ordinary function member
+        Baz();
+
+        // Ordinary static data member
+        static int sj;
+    };
+};
+
+template&lt;typename T&gt;
+Bar&lt;T&gt;::Bar()
+{
+    // ...
+}
+
+template&lt;typename T&gt;
+int Bar&lt;T&gt;::si;
+
+template&lt;typename T&gt;
+template&lt;typename U&gt;
+Bar&lt;T&gt;::Baz&lt;U&gt;::Baz()
+{
+    // ...
+}
+
+template&lt;typename T&gt;
+template&lt;typename U&gt;
+int Bar&lt;T&gt;::Baz&lt;U&gt;::sj;
+</code></pre>
+<p>Nested template member references require multiple <code>template&lt;Params...&gt;</code>
+prefixes, starting with the outermost template and working in.</p>
+<h2 id="Template-parameters">Template parameters</h2>
+<h2 id="Template-instantiation">Template instantiation</h2>
+<p>Templates are <em>instantiated</em> when concrete types (or non-type values) are
+substituted for the template's parameters. For function templates, the
+substitution is often implicit. For class templates, the subsitution is
+explicitly given by the user.</p>
+<pre><code class="language-c++">template&lt;typename T&gt;
+void func(T x)
+{
+    // ...
+}
+
+template&lt;typename T&gt;
+class Foo
+{
+public:
+    Foo() {}
+
+    T foo;
+};
+
+int main()
+{
+    // Instantiation with T = int
+    func(0);
+    
+    // Instantiation with T = double
+    func(0.0);
+    
+    // Instantiation with T = bool
+    func(true);
+    
+    // Instantiation with T = int
+    Foo&lt;int&gt; fi;
+    
+    // Instantiation with T = double
+    Foo&lt;double&gt; fd;
+    
+    // Instantiation with T = bool
+    Foo&lt;bool&gt; fb;
+}
+</code></pre>
+<p>The compiler generates code for each template instantiation, as can be seen
+with <code>nm --demangle</code>:</p>
+<pre><code class="language-txt">0000000000000070 T void func&lt;bool&gt;(bool)
+0000000000000060 T void func&lt;double&gt;(double)
+0000000000000050 T void func&lt;int&gt;(int)
+00000000000000c0 T Foo&lt;bool&gt;::Foo()
+0000000000000100 T Foo&lt;bool&gt;::Foo()
+00000000000000a0 T Foo&lt;double&gt;::Foo()
+00000000000000f0 T Foo&lt;double&gt;::Foo()
+0000000000000080 T Foo&lt;int&gt;::Foo()
+00000000000000e0 T Foo&lt;int&gt;::Foo()
+0000000000000000 T _main
+</code></pre>
+<p>The fact that two versions of the constructor (seemingly with the same name)
+are generated for each template class is a peculiarity of the
+<a href="https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling-special-ctor-dtor">Itanium C++ ABI</a>, which defines separate <em>complete object</em>
+and <em>base object</em> constructors, as can be seen in the mangled symbols:</p>
+<pre><code class="language-txt">00000000000000c0 T __ZN3FooIbEC1Ev
+0000000000000100 T __ZN3FooIbEC2Ev
+00000000000000a0 T __ZN3FooIdEC1Ev
+00000000000000f0 T __ZN3FooIdEC2Ev
+0000000000000080 T __ZN3FooIiEC1Ev
+00000000000000e0 T __ZN3FooIiEC2Ev
+</code></pre>
+<p>The compiler only instantiates template class members that are used somewhere
+in the program. Code is not generated for unused member functions.</p>
+<pre><code class="language-c++">template&lt;typename T&gt;
+class Foo
+{
+public:
+
+    void used()
+    {
+    }
+
+    void unused()
+    {
+    }
+};
+
+int main()
+{
+    Foo&lt;int&gt; foo;
+
+    foo.used();
+}
+</code></pre>
+<pre><code class="language-txt">0000000000000020 T Foo&lt;int&gt;::used()
+0000000000000000 T _main
+</code></pre>
+
+      </main>
+      <footer>
+        Copyright © 2000-2019 Clay McClure. Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
+      <section class="toc">
+        <h2>Table of Contents</h2>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#C-Templates">C++ Templates</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Declaring-and-defining-templates">Declaring and defining templates</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Template-class-members">Template class members</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Template-parameters">Template parameters</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#Template-instantiation">Template instantiation</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>
