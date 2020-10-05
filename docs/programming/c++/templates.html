@@ -23,7 +23,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@TenaciousDebug">
 <meta name="twitter:title" content="C++ Templates">
-<meta name="twitter:description" content="Templates are recipes teaching the compiler how to make functions, classes, variables, and type aliases from ingredients provided by the user at compile time.">
+<meta name="twitter:description" content="Templates are recipes teaching the compiler how to make functions, classes, variables, and type aliases from ingredients (types and values) provided by the user at compile time.">
 <meta name="twitter:image" content="http://daemons.net/static/images/tuxdemon.png">
 
 
@@ -34,35 +34,20 @@
       <main class="content">
         <h1 id="C-Templates">C++ Templates</h1>
 <p>Templates are recipes teaching the compiler how to make functions, classes,
-variables, and type aliases from ingredients provided by the user at compile
-time.</p>
+variables, and type aliases from ingredients (types and values) provided by
+the user at compile time.</p>
 <h2 id="Declaring-and-defining-templates">Declaring and defining templates</h2>
 <p>Template functions, classes, variables, and type aliases are declared and
 defined just like their non-template counterparts, except preceded with
 <code>template&lt;Params...&gt;</code>, where <code>Params...</code> is a list of one or more <a href="#Template-parameters"><em>template
 parameters</em></a>.</p>
-<pre><code class="language-c++">/*
- * Declarations.
- */
-template&lt;typename T&gt;
-void func();
-
-template&lt;typename T, typename U, typename V&gt;
-class Class;
-
-template&lt;typename T&gt;
-extern T var;
-
-/*
- * Definitions.
- */
-template&lt;typename T&gt;
+<pre><code class="language-c++">template&lt;typename T&gt;
 void func()
 {
     // ...
 }
 
-template&lt;typename T, typename U, typename V&gt;
+template&lt;typename T&gt;
 class Class
 {
     // ...
@@ -72,15 +57,13 @@ template&lt;typename T&gt;
 T var;
 
 template&lt;typename T&gt;
-using Alias = Class&lt;T&gt;;
+using alias = T;
 </code></pre>
-<p>All four types of template (function, class, variable, and type alias) can be
-declared (and defined) in namespace scope (including the global namespace, as
-above) or in class scope.</p>
+<p>Templates can be defined in namespace or class scope, but not within a function.</p>
 <h2 id="Template-class-members">Template class members</h2>
 <p>Template classes can contain static and non-static (i.e., instance) data and
 function members, just as with ordinary (non-template) classes. They can also
-contain template members (function, class, static variable, and type alias).</p>
+contain template members (function, class, variable, and type alias).</p>
 <p>To refer to template class members from outside the template class definition,
 the member name is preceded by <code>template&lt;Params...&gt;</code>, just as in the template
 class declaration, <em>and</em> the template class name is followed by an additional
@@ -154,8 +137,6 @@ class Foo
 {
 public:
     Foo() {}
-
-    T foo;
 };
 
 int main()
@@ -194,41 +175,8 @@ with <code>nm --demangle</code>:</p>
 </code></pre>
 <p>The fact that two versions of the constructor (seemingly with the same name)
 are generated for each template class is a peculiarity of the
-<a href="https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling-special-ctor-dtor">Itanium C++ ABI</a>, which defines separate <em>complete object</em>
-and <em>base object</em> constructors, as can be seen in the mangled symbols:</p>
-<pre><code class="language-txt">00000000000000c0 T __ZN3FooIbEC1Ev
-0000000000000100 T __ZN3FooIbEC2Ev
-00000000000000a0 T __ZN3FooIdEC1Ev
-00000000000000f0 T __ZN3FooIdEC2Ev
-0000000000000080 T __ZN3FooIiEC1Ev
-00000000000000e0 T __ZN3FooIiEC2Ev
-</code></pre>
-<p>The compiler only instantiates template class members that are used somewhere
-in the program. Code is not generated for unused member functions.</p>
-<pre><code class="language-c++">template&lt;typename T&gt;
-class Foo
-{
-public:
-
-    void used()
-    {
-    }
-
-    void unused()
-    {
-    }
-};
-
-int main()
-{
-    Foo&lt;int&gt; foo;
-
-    foo.used();
-}
-</code></pre>
-<pre><code class="language-txt">0000000000000020 T Foo&lt;int&gt;::used()
-0000000000000000 T _main
-</code></pre>
+[Itanium C++ ABI][itanium-cxx-abi], which defines separate <em>complete object</em>
+and <em>base object</em> constructors.</p>
 
       </main>
       <footer>

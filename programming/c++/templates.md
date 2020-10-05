@@ -1,8 +1,8 @@
 # C++ Templates
 
 Templates are recipes teaching the compiler how to make functions, classes,
-variables, and type aliases from ingredients provided by the user at compile
-time.
+variables, and type aliases from ingredients (types and values) provided by
+the user at compile time.
 
 ## Declaring and defining templates
 
@@ -11,29 +11,14 @@ defined just like their non-template counterparts, except preceded with
 `template<Params...>`, where `Params...` is a list of one or more [_template
 parameters_](#Template-parameters).
 
-```c++ template-declarations-and-definitions.cc
-/*
- * Declarations.
- */
-template<typename T>
-void func();
-
-template<typename T, typename U, typename V>
-class Class;
-
-template<typename T>
-extern T var;
-
-/*
- * Definitions.
- */
+```c++ templates.cc
 template<typename T>
 void func()
 {
     // ...
 }
 
-template<typename T, typename U, typename V>
+template<typename T>
 class Class
 {
     // ...
@@ -43,18 +28,16 @@ template<typename T>
 T var;
 
 template<typename T>
-using Alias = Class<T>;
+using alias = T;
 ```
 
-All four types of template (function, class, variable, and type alias) can be
-declared (and defined) in namespace scope (including the global namespace, as
-above) or in class scope.
+Templates can be defined in namespace or class scope, but not within a function.
 
 ## Template class members
 
 Template classes can contain static and non-static (i.e., instance) data and
 function members, just as with ordinary (non-template) classes. They can also
-contain template members (function, class, static variable, and type alias).
+contain template members (function, class, variable, and type alias).
 
 To refer to template class members from outside the template class definition,
 the member name is preceded by `template<Params...>`, just as in the template
@@ -137,8 +120,6 @@ class Foo
 {
 public:
     Foo() {}
-
-    T foo;
 };
 
 int main()
@@ -172,38 +153,4 @@ with `nm --demangle`:
 The fact that two versions of the constructor (seemingly with the same name)
 are generated for each template class is a peculiarity of the
 [Itanium C++ ABI][itanium-cxx-abi], which defines separate _complete object_
-and _base object_ constructors, as can be seen in the mangled symbols:
-
-```txt !c++ -c -o - template-implicit-instantiation.cc | nm - | grep Foo
-```
-
-The compiler only instantiates template class members that are used somewhere
-in the program. Code is not generated for unused member functions.
-
-```c++ template-unused-members.cc
-template<typename T>
-class Foo
-{
-public:
-
-    void used()
-    {
-    }
-
-    void unused()
-    {
-    }
-};
-
-int main()
-{
-    Foo<int> foo;
-
-    foo.used();
-}
-```
-
-```txt !c++ -c -o - template-unused-members.cc | nm --demangle -
-```
-
-[itanium-cxx-abi]: https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling-special-ctor-dtor
+and _base object_ constructors.

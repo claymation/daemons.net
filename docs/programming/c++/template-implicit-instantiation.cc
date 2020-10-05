@@ -9,8 +9,6 @@ class Foo
 {
 public:
     Foo() {}
-
-    T foo;
 };
 
 int main()

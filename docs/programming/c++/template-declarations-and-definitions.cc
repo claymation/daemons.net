@@ -4,7 +4,7 @@
 template<typename T>
 void func();
 
-template<typename T, typename U, typename V>
+template<typename T>
 class Class;
 
 template<typename T>
@@ -19,7 +19,7 @@ void func()
     // ...
 }
 
-template<typename T, typename U, typename V>
+template<typename T>
 class Class
 {
     // ...
