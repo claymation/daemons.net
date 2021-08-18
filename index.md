@@ -9,6 +9,7 @@ Notes on computers.
 	 * [Storage](linux/storage/)
  * [Networking](networking/)
 	 * [Ethernet](networking/ethernet/)
+	 * [IP](networking/ip/)
  * [Programming](programming/)
 	 * [C](programming/c/)
 	 * [C++](programming/c++/)
