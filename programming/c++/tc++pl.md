@@ -162,7 +162,7 @@ int main()
 
 produces:
 
-```txt !g++ conversions.cc && ./a.out
+```txt !c++ conversions.cc && ./a.out
 ```
 
 Caveat programmor: value-destroying conversions are perfectly legal and don't
