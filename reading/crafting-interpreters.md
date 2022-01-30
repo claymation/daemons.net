@@ -177,4 +177,53 @@ The Lox standard library is, well, `clock()`.
 
 ### 4. Scanning
 
+A *lexeme* is a minimal sequence of characters that represents something.
 
+Here are some lexemes: `var` &nbsp; `foo` &nbsp; `=` &nbsp; `42` &nbsp; `;`.
+
+The language's *lexical grammar* defines how sequences of characters map to
+lexemes. Lox is a *regular language* — it could be scanned with regular
+expressions.
+
+A *token* is a lexeme adorned with some additional information learned during
+scanning:
+
+* token type, e.g., *var*, *identifier*, *equals*
+* literal value, for identifiers, strings, and numbers
+* location, line and column at which the lexeme appears in the source text
+
+The [Scanner][] class amounts to a loop over a `switch` statement. To handle
+two-character tokens like `!=` and comments (`//`), the scanner employs
+one-character lookahead. To handle decimal number literals (e.g., `3.14159`),
+the scanner looks ahead two characters.
+
+[scanner]: crafting-interpreters/java/com/craftinginterpreters/lox/Scanner.java
+
+By the end of the chapter, we have a scanner that translates the input character
+stream into a list of tokens, as seen here in the REPL:
+
+```
+clay@satellite crafting-interpreters % ./jlox
+> var foo = 42; // some comment
+VAR var null
+IDENTIFIER foo null
+EQUAL = null
+NUMBER 42 42.0
+SEMICOLON ; null
+EOF  null
+
+> fun foo(bar) { print bar.blee; }
+FUN fun null
+IDENTIFIER foo null
+LEFT_PAREN ( null
+IDENTIFIER bar null
+RIGHT_PAREN ) null
+LEFT_BRACE { null
+PRINT print null
+IDENTIFIER bar null
+DOT . null
+IDENTIFIER blee null
+SEMICOLON ; null
+RIGHT_BRACE } null
+EOF  null
+```

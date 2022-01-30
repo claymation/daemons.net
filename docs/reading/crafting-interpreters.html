@@ -181,6 +181,48 @@ instances of classes and don't have methods.</p>
 <p>The Lox standard library is, well, <code>clock()</code>.</p>
 <h2 id="Part-II-A-Tree-Walk-Interpreter">Part II: A Tree-Walk Interpreter</h2>
 <h3 id="4-Scanning">4. Scanning</h3>
+<p>A <em>lexeme</em> is a minimal sequence of characters that represents something.</p>
+<p>Here are some lexemes: <code>var</code>   <code>foo</code>   <code>=</code>   <code>42</code>   <code>;</code>.</p>
+<p>The language's <em>lexical grammar</em> defines how sequences of characters map to
+lexemes. Lox is a <em>regular language</em> — it could be scanned with regular
+expressions.</p>
+<p>A <em>token</em> is a lexeme adorned with some additional information learned during
+scanning:</p>
+<ul>
+<li>token type, e.g., <em>var</em>, <em>identifier</em>, <em>equals</em></li>
+<li>literal value, for identifiers, strings, and numbers</li>
+<li>location, line and column at which the lexeme appears in the source text</li>
+</ul>
+<p>The <a href="crafting-interpreters/java/com/craftinginterpreters/lox/Scanner.java">Scanner</a> class amounts to a loop over a <code>switch</code> statement. To handle
+two-character tokens like <code>!=</code> and comments (<code>//</code>), the scanner employs
+one-character lookahead. To handle decimal number literals (e.g., <code>3.14159</code>),
+the scanner looks ahead two characters.</p>
+<p>By the end of the chapter, we have a scanner that translates the input character
+stream into a list of tokens, as seen here in the REPL:</p>
+<pre><code class="nohighlight">clay@satellite crafting-interpreters % ./jlox
+&gt; var foo = 42; // some comment
+VAR var null
+IDENTIFIER foo null
+EQUAL = null
+NUMBER 42 42.0
+SEMICOLON ; null
+EOF  null
+
+&gt; fun foo(bar) { print bar.blee; }
+FUN fun null
+IDENTIFIER foo null
+LEFT_PAREN ( null
+IDENTIFIER bar null
+RIGHT_PAREN ) null
+LEFT_BRACE { null
+PRINT print null
+IDENTIFIER bar null
+DOT . null
+IDENTIFIER blee null
+SEMICOLON ; null
+RIGHT_BRACE } null
+EOF  null
+</code></pre>
 
       </main>
       <footer>
