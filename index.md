@@ -13,3 +13,5 @@ Notes on computers.
  * [Programming](programming/)
 	 * [C](programming/c/)
 	 * [C++](programming/c++/)
+
+My [reading](reading/) list.

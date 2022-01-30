@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/6.0.0/normalize.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato:400" rel="stylesheet">
+<link href="/static/css/main.css" rel="stylesheet">
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/atom-one-light.min.css" rel="stylesheet">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<title>Crafting Interpreters</title>
+
+<meta name="author" content="Clay McClure">
+<meta name="description" content="Compendium of computing articles focused on embedded Linux, networking, and C, C++, and Python programming.">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@TenaciousDebug">
+<meta name="twitter:title" content="Crafting Interpreters">
+<meta name="twitter:description" content="1st Edition  (2021) Robert Nystrom">
+<meta name="twitter:image" content="http://daemons.net/static/images/tuxdemon.png">
+
+
+
+<div class="document">
+  <div class="documentwrapper">
+    <div class="contentwrapper">
+      <main class="content">
+        <h1 id="Crafting-Interpreters">Crafting Interpreters</h1>
+<p><a href="http://craftinginterpreters.com">1st Edition</a> (2021)<br />
+Robert Nystrom</p>
+<h2 id="Part-I-Welcome">Part I: Welcome</h2>
+<h3 id="1-Introduction">1. Introduction</h3>
+<p>We're going to write two interpreters for the didactic scripting language, Lox:</p>
+<ul>
+<li><code>jlox</code>, a tree-walk interpreter in Java</li>
+<li><code>clox</code>, a bytecode virtual machine in C</li>
+</ul>
+<p>Sounds like fun! Let's get started.</p>
+<h3 id="2-A-Map-of-the-Territory">2. A Map of the Territory</h3>
+<p>Languages today are built much the way they were years ago.</p>
+<p>Implementations follow paths as if climbing a mountain, starting from the
+characters of the program text, ascending to higher levels of abstraction,
+reaching a peak where the meaning of the program is understood, and finally
+descending toward low-level representations suitable for the machine:</p>
+<ul>
+<li>
+<p><em>scanning</em>, aka lexing or lexical analysis, transforms a stream of
+characters to a stream of tokens</p>
+</li>
+<li>
+<p><em>parsing</em> builds a parse tree / syntax tree representation of the token
+stream</p>
+</li>
+<li>
+<p><em>static analysis</em> is more language-specific than the first two steps. Here,
+identifiers are bound according to scoping rules. Statically typed languages
+can do type checking here.</p>
+<p>Information learned during static analysis can be stored as attributes in the
+syntax tree, in a symbol table, or in an intermediate representation.</p>
+<p>These first three phases constitute the &quot;front end&quot;.</p>
+</li>
+<li>
+<p><em>intermediate representations</em> are neither language nor machine specific.
+IR styles include control flow graph, static single-assignment,
+continuation-passing style, and three-address code. GIMPLE and RTL are used in
+GCC; LLVM in clang.</p>
+</li>
+<li>
+<p><em>optimization</em>, in which the user's program is swapped out for a faster (or
+smaller) program with the same semantics (meaning).</p>
+<p>Lua and CPython trade optimizing compilers for more efficient runtimes.</p>
+<p>These next two phases constitute the &quot;middle end&quot; (how can you have a middle
+<em>end</em>?)</p>
+</li>
+<li>
+<p><em>code generation</em>, the &quot;back end&quot; of the compiler, emits machine code or
+machine-agnostic bytecode.</p>
+</li>
+<li>
+<p><em>virtual machines</em> interpret/execute bytecode.</p>
+</li>
+<li>
+<p>the <em>runtime</em> provides run-time support for language features like garbage
+collection and querying an object's type.</p>
+</li>
+</ul>
+<p><em>Single-pass compilers</em> don't build a full syntax tree; they generate code as
+soon as they have seen enough text to know what to generate. This was important
+for early compilers that ran on machines that didn't have enough memory to store
+even the entire program text. The Pascal and C languages were designed around
+this constraint, which is why, for instance, C requires forward declarations.</p>
+<p>Syntax-directed translation is one technique for building single-pass compilers.</p>
+<p><em>Tree-walk interpreters</em> construct a syntax tree and then evaluate each node in
+turn. Matz's Ruby Interpreter worked like that.</p>
+<p><em>Transpilers</em> translate the source text to another language. Originally,
+transcompilers translated assembly languages; now, it's more common to transpile
+high-level languages to JavaScript.</p>
+<p>With <em>just-in-time compilation</em>, source text or machine independent bytecode is
+translated to machine code on-demand, as the program is executed.</p>
+<p><em>Compilers</em> translate programs from one form (source code) to another (machine
+code, byte code, another high-level language), but don't execute it.</p>
+<p><em>Interpreters</em> execute programs. Some interpreters compile the source text to
+bytecode and then execute that.</p>
+<p>In other news, apparently peanuts are fruit.</p>
+<h3 id="3-The-Lox-Language">3. The Lox Language</h3>
+<p>Lox is a little language with a C-like syntax. It resembles high-level scripting
+languages like JavaScript, Scheme, and Lua.</p>
+<p>Lox is <em>dynamically typed</em>, because that's easier to implement than a static
+type system:</p>
+<blockquote>
+<p>A static type system is a ton of work to learn and implement.</p>
+</blockquote>
+<p>Lox uses <em>garbage collection</em> (as opposed to <em>reference counting</em>) to
+automatically manage memory.</p>
+<p>Lox's built-in data types are:</p>
+<ul>
+<li><strong>Booleans</strong> (<code>true</code>, <code>false</code>)</li>
+<li><strong>numbers</strong> are double-precision floating-point (<code>1234</code>, <code>1.234</code>)</li>
+<li><strong>strings</strong> are enclosed in double quotes (<code>&quot;I am a string&quot;</code>)</li>
+<li><strong>nil</strong>, the un-value</li>
+</ul>
+<p>We have the usual <em>infix binary</em> operators (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>), and a unary <code>-</code>
+to negate a value. <code>+</code> concatenates strings.</p>
+<p>We have the usual comparison operators (<code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>), which work on
+numbers, and equality operators (<code>==</code>, <code>!=</code>), which work on any type.</p>
+<blockquote>
+<p>I’m generally against implicit conversions.</p>
+</blockquote>
+<p>We have a hybrid of C and Python logical operators: <code>!</code>, <code>and</code>, and <code>or</code> do what
+you'd expect. Because they short circuit, <code>and</code> and <code>or</code> are like control flow
+structures.</p>
+<blockquote>
+<p>Where an expression’s main job is to produce a value, a statement’s job is to
+produce an effect.</p>
+</blockquote>
+<p>We have a <code>print</code> statement for didactic convenience, and C-style <code>{}</code> blocks.</p>
+<p>Variables are declared with <code>var</code> statements:</p>
+<pre><code class="nohighlight">var foo = &quot;bar&quot;;
+</code></pre>
+<p>For control flow, we have <code>if</code>, <code>while</code>, and <code>for</code>.</p>
+<p>Functions are defined with <code>fun</code>, return values with `return, and are called
+with parens:</p>
+<pre><code class="nohighlight">fun add(a, b) {
+    return a + b;
+}
+
+add(2, 3)
+</code></pre>
+<p>A function that doesn't <code>return</code> anything implicitly returns <code>nil</code>.</p>
+<p>Functions are first class — you can pass functions to functions, store them in
+variables, etc. You can also define functions within functions. And we have
+closures.</p>
+<p>Lox has class-based objects.</p>
+<p>(I finally understand JavaScript's <code>prototype</code>, thanks to <a href="http://gameprogrammingpatterns.com/prototype.html#what-about-javascript">What about JavaScript</a>
+in his other book, <em>Game Programming Patterns</em>.)</p>
+<p>Classes are first-class. Call the class like a function to create an instance;
+define <code>init()</code> to initialize new instances.</p>
+<pre><code class="nohighlight">class Foo
+{
+  init()
+  {
+    this.bar = 42;
+  }
+}
+
+foo = Foo();
+
+print foo.bar;
+</code></pre>
+<p>We have single inheritance, via the <code>&lt;</code> operator, and <code>super</code> to call base class
+methods.</p>
+<p>Lox isn't everything-is-an-object OOP like Ruby. Built-in types are not
+instances of classes and don't have methods.</p>
+<p>The Lox standard library is, well, <code>clock()</code>.</p>
+<h2 id="Part-II-A-Tree-Walk-Interpreter">Part II: A Tree-Walk Interpreter</h2>
+<h3 id="4-Scanning">4. Scanning</h3>
+
+      </main>
+      <footer>
+        Copyright © 2000-2022
+	<a href="mailto:clay@daemons.net">Clay McClure</a>.
+	Made with <a href="https://claymation.github.io/void/">void</a>.
+      </footer>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebarwrapper">
+      <a href="/"><img src="/static/images/tuxdemon.png" width=160 height=160 alt="Tux (the Linux penguin) with daemon horns"></a>
+      <section class="toc">
+        <h2>Table of Contents</h2>
+        
+        
+          
+            <ul><li>
+          
+          <a href="#Crafting-Interpreters">Crafting Interpreters</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#Part-I-Welcome">Part I: Welcome</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#1-Introduction">1. Introduction</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#2-A-Map-of-the-Territory">2. A Map of the Territory</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#3-The-Lox-Language">3. The Lox Language</a>
+          
+          
+        
+          
+            
+              </li></ul>
+            
+            <li>
+          
+          <a href="#Part-II-A-Tree-Walk-Interpreter">Part II: A Tree-Walk Interpreter</a>
+          
+          
+        
+          
+            <ul><li>
+          
+          <a href="#4-Scanning">4. Scanning</a>
+          
+          
+        
+        
+          </li></ul>
+        
+          </li></ul>
+        
+          </li></ul>
+        
+      </section>
+    </div>
+  </div>
+</div>
