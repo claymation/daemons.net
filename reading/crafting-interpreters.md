@@ -192,12 +192,12 @@ scanning:
 * literal value, for identifiers, strings, and numbers
 * location, line and column at which the lexeme appears in the source text
 
-The [Scanner][] class amounts to a loop over a `switch` statement. To handle
+The [`Scanner`][] class amounts to a loop over a `switch` statement. To handle
 two-character tokens like `!=` and comments (`//`), the scanner employs
 one-character lookahead. To handle decimal number literals (e.g., `3.14159`),
 the scanner looks ahead two characters.
 
-[scanner]: crafting-interpreters/java/com/craftinginterpreters/lox/Scanner.java
+[`Scanner`]: crafting-interpreters/java/com/craftinginterpreters/lox/Scanner.java
 
 By the end of the chapter, we have a scanner that translates the input character
 stream into a list of tokens, as seen here in the REPL:
@@ -227,3 +227,70 @@ SEMICOLON ; null
 RIGHT_BRACE } null
 EOF  null
 ```
+
+### 5. Representing Code
+
+Expressions can be represented as trees, with values at the leaves and operators
+at interior nodes. The expression is evaluated via a post-order traversal of the
+tree.
+
+And now, a bit about formal grammars:
+
+Our scanner used a *regular grammar* to translate sequences of characters to
+tokens. Our parser will use a *context-free grammar* to translate sequences of
+tokens to expressions. Context-free grammars are more expressive: they can
+represent arbitrarily nested expressions.
+
+Grammars have rules (called productions) that can be used to produce (derive)
+strings (called derivations). Productions reference two flavors of *symbol*:
+
+* *terminal*, a letter from the grammar's alphabet (i.e., a token)
+* *nonterminal*, a reference to another production
+
+Each production has a *head* and a *body*: an input matching the head may be
+replaced by the body. So, for the production:
+
+```
+protein → cooked "eggs" ;
+```
+
+any occurence of the head (`protein`) in the input may be replaced by the body
+(`cooked "eggs"`). Using the author's notation, `protein` and `cooked` are
+nonterminals (unquoted) and `eggs` is a terminal (quoted).
+
+In context-free grammars, the head of each production must be a single
+nonterminal.
+
+We're going to start by writing _some_ of the syntactic grammar, just enough to
+allow us to parse a handful of expressions. We'll add more grammar rules in
+later chapters.
+
+And now, back to trees:
+
+Using our grammar, which defines valid sequences of tokens, we're going to
+write a parser that converts the stream of tokens emitted by the scanner into a
+*abstract syntax tree* representing the code.
+
+Since we're using the object-oriented programming paradigm, we'll have a base
+`Expr` class for the nodes of our tree, with subclasses for each type of
+expression. Because Java requires a lot of boilerplate code, we'll write a
+program to generate all the classes from a simple textual description.
+
+The *expression problem* is an object-oriented design problem that notes that
+while it's easy to add new classes to a hierarchy, it's hard to add new methods
+(classes of behavior) to all existing classes in the hierarchy.
+
+The *visitor pattern* (from GoF) helps here. We define a `Visitor` interface,
+which defines methods for each of the classes in the hierarchy that we want to
+"visit". We also define an abstract `accept(Visitor)` method in the hierarchy
+base class and implement it in each of the derived classes. The implementation
+of `accept(Visitor)` is straightforward — it just calls the appropriate method
+on the passed-in Visitor. Then, to add a new class of behaviors, we just
+implement the Visitor interface in a concrete class, and pass an instance of
+that to an instance of any class in our hierarchy.
+
+To get a feel for the pattern, we implement an [`AstPrinter`][] class and use
+that to print some simple expressions. (And, for fun, [`RpnPrinter`][]).
+
+[`AstPrinter`]: crafting-interpreters/java/com/craftinginterpreters/lox/AstPrinter.java
+[`RpnPrinter`]: crafting-interpreters/java/com/craftinginterpreters/lox/RpnPrinter.java

@@ -193,7 +193,7 @@ scanning:</p>
 <li>literal value, for identifiers, strings, and numbers</li>
 <li>location, line and column at which the lexeme appears in the source text</li>
 </ul>
-<p>The <a href="crafting-interpreters/java/com/craftinginterpreters/lox/Scanner.java">Scanner</a> class amounts to a loop over a <code>switch</code> statement. To handle
+<p>The <a href="crafting-interpreters/java/com/craftinginterpreters/lox/Scanner.java"><code>Scanner</code></a> class amounts to a loop over a <code>switch</code> statement. To handle
 two-character tokens like <code>!=</code> and comments (<code>//</code>), the scanner employs
 one-character lookahead. To handle decimal number literals (e.g., <code>3.14159</code>),
 the scanner looks ahead two characters.</p>
@@ -223,6 +223,54 @@ SEMICOLON ; null
 RIGHT_BRACE } null
 EOF  null
 </code></pre>
+<h3 id="5-Representing-Code">5. Representing Code</h3>
+<p>Expressions can be represented as trees, with values at the leaves and operators
+at interior nodes. The expression is evaluated via a post-order traversal of the
+tree.</p>
+<p>And now, a bit about formal grammars:</p>
+<p>Our scanner used a <em>regular grammar</em> to translate sequences of characters to
+tokens. Our parser will use a <em>context-free grammar</em> to translate sequences of
+tokens to expressions. Context-free grammars are more expressive: they can
+represent arbitrarily nested expressions.</p>
+<p>Grammars have rules (called productions) that can be used to produce (derive)
+strings (called derivations). Productions reference two flavors of <em>symbol</em>:</p>
+<ul>
+<li><em>terminal</em>, a letter from the grammar's alphabet (i.e., a token)</li>
+<li><em>nonterminal</em>, a reference to another production</li>
+</ul>
+<p>Each production has a <em>head</em> and a <em>body</em>: an input matching the head may be
+replaced by the body. So, for the production:</p>
+<pre><code class="nohighlight">protein → cooked &quot;eggs&quot; ;
+</code></pre>
+<p>any occurence of the head (<code>protein</code>) in the input may be replaced by the body
+(<code>cooked &quot;eggs&quot;</code>). Using the author's notation, <code>protein</code> and <code>cooked</code> are
+nonterminals (unquoted) and <code>eggs</code> is a terminal (quoted).</p>
+<p>In context-free grammars, the head of each production must be a single
+nonterminal.</p>
+<p>We're going to start by writing <em>some</em> of the syntactic grammar, just enough to
+allow us to parse a handful of expressions. We'll add more grammar rules in
+later chapters.</p>
+<p>And now, back to trees:</p>
+<p>Using our grammar, which defines valid sequences of tokens, we're going to
+write a parser that converts the stream of tokens emitted by the scanner into a
+<em>abstract syntax tree</em> representing the code.</p>
+<p>Since we're using the object-oriented programming paradigm, we'll have a base
+<code>Expr</code> class for the nodes of our tree, with subclasses for each type of
+expression. Because Java requires a lot of boilerplate code, we'll write a
+program to generate all the classes from a simple textual description.</p>
+<p>The <em>expression problem</em> is an object-oriented design problem that notes that
+while it's easy to add new classes to a hierarchy, it's hard to add new methods
+(classes of behavior) to all existing classes in the hierarchy.</p>
+<p>The <em>visitor pattern</em> (from GoF) helps here. We define a <code>Visitor</code> interface,
+which defines methods for each of the classes in the hierarchy that we want to
+&quot;visit&quot;. We also define an abstract <code>accept(Visitor)</code> method in the hierarchy
+base class and implement it in each of the derived classes. The implementation
+of <code>accept(Visitor)</code> is straightforward — it just calls the appropriate method
+on the passed-in Visitor. Then, to add a new class of behaviors, we just
+implement the Visitor interface in a concrete class, and pass an instance of
+that to an instance of any class in our hierarchy.</p>
+<p>To get a feel for the pattern, we implement an <a href="crafting-interpreters/java/com/craftinginterpreters/lox/AstPrinter.java"><code>AstPrinter</code></a> class and use
+that to print some simple expressions. (And, for fun, <a href="crafting-interpreters/java/com/craftinginterpreters/lox/RpnPrinter.java"><code>RpnPrinter</code></a>).</p>
 
       </main>
       <footer>
@@ -289,6 +337,13 @@ EOF  null
             <ul><li>
           
           <a href="#4-Scanning">4. Scanning</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#5-Representing-Code">5. Representing Code</a>
           
           
         
