@@ -3,6 +3,7 @@
 [1st Edition](http://craftinginterpreters.com) (2021)  
 Robert Nystrom
 
+
 ## Part I: Welcome
 
 ### 1. Introduction
@@ -13,6 +14,7 @@ We're going to write two interpreters for the didactic scripting language, Lox:
 * `clox`, a bytecode virtual machine in C
 
 Sounds like fun! Let's get started.
+
 
 ### 2. A Map of the Territory
 
@@ -173,6 +175,7 @@ instances of classes and don't have methods.
 
 The Lox standard library is, well, `clock()`.
 
+
 ## Part II: A Tree-Walk Interpreter
 
 ### 4. Scanning
@@ -227,6 +230,7 @@ SEMICOLON ; null
 RIGHT_BRACE } null
 EOF  null
 ```
+
 
 ### 5. Representing Code
 
@@ -294,3 +298,8 @@ that to print some simple expressions. (And, for fun, [`RpnPrinter`][]).
 
 [`AstPrinter`]: crafting-interpreters/java/com/craftinginterpreters/lox/AstPrinter.java
 [`RpnPrinter`]: crafting-interpreters/java/com/craftinginterpreters/lox/RpnPrinter.java
+
+
+### 6. Parsing Expressions
+
+We're using a *recursive descent* parser.

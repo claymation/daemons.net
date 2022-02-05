@@ -271,6 +271,8 @@ implement the Visitor interface in a concrete class, and pass an instance of
 that to an instance of any class in our hierarchy.</p>
 <p>To get a feel for the pattern, we implement an <a href="crafting-interpreters/java/com/craftinginterpreters/lox/AstPrinter.java"><code>AstPrinter</code></a> class and use
 that to print some simple expressions. (And, for fun, <a href="crafting-interpreters/java/com/craftinginterpreters/lox/RpnPrinter.java"><code>RpnPrinter</code></a>).</p>
+<h3 id="6-Parsing-Expressions">6. Parsing Expressions</h3>
+<p>We're using a <em>recursive descent</em> parser.</p>
 
       </main>
       <footer>
@@ -344,6 +346,13 @@ that to print some simple expressions. (And, for fun, <a href="crafting-interpre
             </li><li>
           
           <a href="#5-Representing-Code">5. Representing Code</a>
+          
+          
+        
+          
+            </li><li>
+          
+          <a href="#6-Parsing-Expressions">6. Parsing Expressions</a>
           
           
         
